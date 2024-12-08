@@ -14,7 +14,6 @@ public class Forge : MonoBehaviour
 
     private void Start()
     {
-        // ForgeFire 컴포넌트 초기화
         forgeFire = GetComponentInChildren<ForgeFire>();
         if (forgeFire == null)
         {

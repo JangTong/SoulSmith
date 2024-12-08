@@ -9,10 +9,8 @@ public class ForgeFire : MonoBehaviour
 
     public bool OnFire = false;          // Emission 활성화 여부
     public Color baseEmissionColor = Color.red; // 기본 Emission 색상
-    public float minIntensity = 0.5f;   // 최소 Emission Intensity
-    public float maxIntensity = 2f;    // 최대 Emission Intensity
-    public float transitionSpeed = 2f; // Emission 전환 속도
-    public float flickerSpeed = 0.1f;  // Flicker 속도 (시간 간격)
+    public float maxIntensity = 5f;      // 최대 Emission Intensity
+    public float transitionSpeed = 2f;   // Emission 전환 속도 (1초에 변화량)
 
     private void Start()
     {
@@ -36,23 +34,16 @@ public class ForgeFire : MonoBehaviour
         }
 
         EnableEmission();
+        currentIntensity = 0f; // 초기 밝기를 0으로 설정
     }
 
     private void Update()
     {
-        if (OnFire)
-        {
-            // Emission을 활성화 상태로 목표 Intensity를 최대값으로 설정
-            targetIntensity = maxIntensity;
-            FlickerEmission(); // Flicker 효과 적용
-        }
-        else
-        {
-            // Emission을 비활성화 상태로 목표 Intensity를 최소값으로 설정
-            targetIntensity = 0;
-        }
+        // Emission 상태에 따라 목표 Intensity 설정
+        targetIntensity = OnFire ? maxIntensity : 0f;
 
-        SmoothTransition(); // Intensity 부드럽게 전환
+        // 현재 Intensity를 목표 Intensity로 천천히 전환
+        SmoothTransition();
     }
 
     private void EnableEmission()
@@ -63,36 +54,12 @@ public class ForgeFire : MonoBehaviour
         }
     }
 
-    private void DisableEmission()
-    {
-        if (fireMaterial != null)
-        {
-            // Emission 비활성화
-            fireMaterial.SetColor("_EmissionColor", Color.black);
-            DynamicGI.SetEmissive(targetRenderer, Color.black);
-        }
-    }
-
-    private void FlickerEmission()
-    {
-        if (fireMaterial != null)
-        {
-            // Perlin Noise를 사용한 Intensity 변동
-            float noise = Mathf.PerlinNoise(Time.time * flickerSpeed, 0);
-            float flickerIntensity = Mathf.Lerp(minIntensity, maxIntensity, noise);
-
-            // Emission Color에 Flicker Intensity 적용
-            fireMaterial.SetColor("_EmissionColor", baseEmissionColor * flickerIntensity);
-            DynamicGI.SetEmissive(targetRenderer, baseEmissionColor * flickerIntensity);
-        }
-    }
-
     private void SmoothTransition()
     {
         if (fireMaterial != null)
         {
-            // 현재 Intensity를 목표 Intensity로 부드럽게 전환
-            currentIntensity = Mathf.Lerp(currentIntensity, targetIntensity, Time.deltaTime * transitionSpeed);
+            // 현재 Intensity를 목표 Intensity로 선형적으로 전환
+            currentIntensity = Mathf.MoveTowards(currentIntensity, targetIntensity, Time.deltaTime * transitionSpeed);
 
             // Emission Color에 현재 Intensity 적용
             fireMaterial.SetColor("_EmissionColor", baseEmissionColor * currentIntensity);

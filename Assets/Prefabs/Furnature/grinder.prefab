@@ -64,7 +64,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 521ca62a07b8034459ad12f5fa7f9701, type: 2}
-  - {fileID: 2100000, guid: 6209e65906b7d3b45ae8ea4784695500, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -132,7 +131,6 @@ GameObject:
   - component: {fileID: 4451569121688058563}
   - component: {fileID: 1582675330903970345}
   - component: {fileID: 8735259350876228511}
-  - component: {fileID: 459646036553660445}
   m_Layer: 0
   m_Name: grinder
   m_TagString: Untagged
@@ -185,7 +183,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 521ca62a07b8034459ad12f5fa7f9701, type: 2}
-  - {fileID: 2100000, guid: 6209e65906b7d3b45ae8ea4784695500, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -229,30 +226,3 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 3073682401481326464, guid: 4f1f23180efdef6449f1b0b9b1b1083f, type: 3}
---- !u!54 &459646036553660445
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7197926952710680130}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0

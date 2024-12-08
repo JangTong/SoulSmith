@@ -33,11 +33,16 @@ public class WeaponColliderHandler : MonoBehaviour
         {
             parentWeaponBase.IncrementCollisionCount(colliderName);
 
+            // 소리 리스트 중 랜덤으로 하나 선택하여 재생
+            string[] soundNames = { "HammerHeat_1", "HammerHeat_2", "HammerHeat_3" }; // 소리 이름 배열
+            int randIndex = Random.Range(0, soundNames.Length); // 랜덤 인덱스 선택
+            SoundManager.Instance.PlaySoundAtPosition(soundNames[randIndex], transform.position);
+
             // Emission Intensity 증가
             IncreaseEmissionIntensity(1f);
 
             // Trigger 감지를 잠시 비활성화
-            StartCoroutine(DelayTriggerDetection(0.7f)); // 0.6초 딜레이
+            StartCoroutine(DelayTriggerDetection(0.7f)); // 0.7초 딜레이
         }
     }
 

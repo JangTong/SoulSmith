@@ -220,6 +220,7 @@ GameObject:
   - component: {fileID: 2503140302441745757}
   - component: {fileID: 6051674796370661350}
   - component: {fileID: 4622098127497816958}
+  - component: {fileID: 8155468477269382526}
   m_Layer: 2
   m_Name: Fire
   m_TagString: Untagged
@@ -313,6 +314,22 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1.8404233}
   m_Center: {x: 0.000000002632354, y: 0, z: 0.42021227}
+--- !u!114 &8155468477269382526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8515886689549961341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f485d7cd340eba344b8ac0917b6e4b14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnFire: 0
+  baseEmissionColor: {r: 1, g: 0.40396053, b: 0, a: 1}
+  maxIntensity: 20
+  transitionSpeed: 2
 --- !u!1001 &78218326121510856
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -324,7 +341,7 @@ PrefabInstance:
     - target: {fileID: 5051549545667315401, guid: a39dd3b8bbc8afd46aba5478c68d400c,
         type: 3}
       propertyPath: m_Name
-      value: Blower
+      value: Bellows
       objectReference: {fileID: 0}
     - target: {fileID: 5571345405108100211, guid: a39dd3b8bbc8afd46aba5478c68d400c,
         type: 3}

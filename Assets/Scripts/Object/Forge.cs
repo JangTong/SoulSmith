@@ -41,11 +41,6 @@ public class Forge : MonoBehaviour
             yield break;
         }
 
-        if (forgeFire != null) // ForgeFire 비활성화
-        {
-            forgeFire.OnFire = true;
-        }
-
         // MaterialType 개수 확인
         int metalCount = 0;
         int fuelCount = 0;
@@ -71,6 +66,11 @@ public class Forge : MonoBehaviour
         {
             Debug.LogWarning($"Forging 실패: Metal과 Fuel의 비율이 1:1이 아닙니다. (Metal: {metalCount}, Fuel: {fuelCount})");
             yield break;
+        }
+
+        if (forgeFire != null)
+        {
+            forgeFire.OnFire = true;
         }
 
         // 새로운 아이템 속성 초기화
@@ -165,7 +165,6 @@ public class Forge : MonoBehaviour
         {
             forgeFire.OnFire = false;
         }
-
 
         yield break;
     }

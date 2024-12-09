@@ -17,7 +17,7 @@ public class HammerHead : MonoBehaviour
 
     private IEnumerator PlaySoundWithDelay()
     {
-        isPlayingSound = true; // 소리 재생 중으로 설정
+        isPlayingSound = true;
 
         // 파티클 효과 재생
         if (sparkEffect != null)
@@ -25,14 +25,12 @@ public class HammerHead : MonoBehaviour
             sparkEffect.Play();
         }
 
-        // 소리 리스트 중 랜덤으로 하나 선택하여 재생
-        string[] soundNames = { "HammerHeat_1", "HammerHeat_2", "HammerHeat_3" }; // 소리 이름 배열
-        int randIndex = Random.Range(0, soundNames.Length); // 랜덤 인덱스 선택
+        string[] soundNames = { "HammerHeat_1", "HammerHeat_2", "HammerHeat_3" };
+        int randIndex = Random.Range(0, soundNames.Length);
         SoundManager.Instance.PlaySoundAtPosition(soundNames[randIndex], transform.position);
 
-        // 딜레이
         yield return new WaitForSeconds(soundDelay);
 
-        isPlayingSound = false; // 소리 재생 완료 후 대기 상태로 전환
+        isPlayingSound = false;
     }
 }

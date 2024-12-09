@@ -11,14 +11,12 @@ public class Forge : MonoBehaviour
     public GameObject itemPrefab; // 미리 준비된 3D Object Prefab
     public List<GameObject> storedItems = new List<GameObject>(); // 저장된 Items 오브젝트 배열
     private ForgeFire forgeFire; // ForgeFire 컴포넌트 참조
+    private ParticleSystem sparkEffect;
 
     private void Start()
     {
         forgeFire = GetComponentInChildren<ForgeFire>();
-        if (forgeFire == null)
-        {
-            Debug.LogError("ForgeFire 컴포넌트를 찾을 수 없습니다.");
-        }
+        sparkEffect = GetComponentInChildren<ParticleSystem>();
     }
 
     public void StartForging()
@@ -164,7 +162,7 @@ public class Forge : MonoBehaviour
         {
             forgeFire.OnFire = false;
         }
-
+        sparkEffect.Play();
         yield break;
     }
 

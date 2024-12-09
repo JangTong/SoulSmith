@@ -7,7 +7,7 @@ public class WeaponColliderHandler : MonoBehaviour
     private Renderer weaponRenderer;     // 머티리얼 접근을 위한 Renderer
     private Material weaponMaterial;     // 머티리얼 참조
     private string colliderName;         // Collider 이름
-    private static bool canDetect = true; // Trigger 감지 가능 여부
+    public static bool canDetect = false; // Trigger 감지 가능 여부
     private float currentEmissionIntensity = 2f; // 현재 Emission Intensity
     private readonly float maxEmissionIntensity = 10f; // 최대 Emission Intensity
 

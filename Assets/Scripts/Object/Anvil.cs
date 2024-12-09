@@ -8,6 +8,7 @@ public class Anvil : MonoBehaviour
     public List<GameObject> weaponList = new List<GameObject>();
     public ItemComponent itemComponent;
     public WeaponBase weaponBase;
+    public ParticleSystem sparkEffect;
 
     private void Update()
     {
@@ -18,6 +19,7 @@ public class Anvil : MonoBehaviour
     {
         // GameObject에서 ItemComponent 가져오기
         itemComponent = other.GetComponent<ItemComponent>();
+        
 
         // ItemComponent가 존재하고 조건을 만족하는 경우 처리
         if (!ItemPickup.Instance.isSwinging && !ItemPickup.Instance.isEquipped && objectOnAnvil == null && itemComponent != null && itemComponent.itemType == ItemType.Resource && itemComponent.materialType == MaterialType.Metal)
@@ -36,6 +38,7 @@ public class Anvil : MonoBehaviour
             other.transform.localPosition = Vector3.zero; // 자식 위치로 고정
 
             Debug.Log($"{other.name}이(가) Anvil에 고정되었습니다.");
+            WeaponColliderHandler.canDetect = true;
         }
     }
 
@@ -46,6 +49,7 @@ public class Anvil : MonoBehaviour
         {
             objectOnAnvil = null; // 초기화
             Debug.Log($"{other.name}이(가) Anvil에서 제거되었습니다.");
+            WeaponColliderHandler.canDetect = false;
         }
     }
 
@@ -80,7 +84,7 @@ public class Anvil : MonoBehaviour
 
                     if (newItemComponent != null)
                     {
-                        newItemComponent.itemName = "TwoHandedSword" + " (Forged)";
+                        newItemComponent.itemName = "TwoHandedSword";
                         newItemComponent.weight = itemComponent.weight * 0.8f; // 무게 10% 증가
                         newItemComponent.atkPower = itemComponent.atkPower * 1.2f; // 공격력 20% 증가
                         newItemComponent.defPower = itemComponent.defPower * 1.05f; // 방어력 5% 증가
@@ -103,7 +107,7 @@ public class Anvil : MonoBehaviour
 
                     if (newItemComponent != null)
                     {
-                        newItemComponent.itemName = "Sword" + " (Forged)";
+                        newItemComponent.itemName = "Sword";
                         newItemComponent.weight = itemComponent.weight * 1.1f; // 무게 10% 증가
                         newItemComponent.atkPower = itemComponent.atkPower * 1.2f; // 공격력 20% 증가
                         newItemComponent.defPower = itemComponent.defPower * 1.05f; // 방어력 5% 증가
@@ -117,6 +121,7 @@ public class Anvil : MonoBehaviour
             // WeaponBase제거
             Destroy(objectOnAnvil);
             objectOnAnvil = null;
+            sparkEffect.Play();
         }
         else if(ChechCollisionData(1,1,1,1,3)) //Axe생성
         {
@@ -132,7 +137,7 @@ public class Anvil : MonoBehaviour
                 if (newItemComponent != null)
                 {
                     // 기존 ItemComponent 수치 복사
-                    newItemComponent.itemName = "Axe" + " (Forged)";
+                    newItemComponent.itemName = "Axe";
                     newItemComponent.weight = itemComponent.weight * 0.8f; // 무게 10% 증가
                     newItemComponent.atkPower = itemComponent.atkPower * 1.2f; // 공격력 20% 증가
                     newItemComponent.defPower = itemComponent.defPower * 1.05f; // 방어력 5% 증가
@@ -145,8 +150,8 @@ public class Anvil : MonoBehaviour
             // WeaponBase제거
             Destroy(objectOnAnvil);
             objectOnAnvil = null;
+            sparkEffect.Play();
         }
-
         return;
     }
 

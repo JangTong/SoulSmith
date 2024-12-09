@@ -83,8 +83,8 @@ public class ItemComponent : MonoBehaviour
 // 속성 관련 열거형 (기본 값 설정)
 public enum Rarity { None, Common, Uncommon, Rare, Epic, Legendary }
 public enum ItemType { None, Weapon, Armor, Consumable, Resource, QuestItem }
-public enum WeaponType { None, Sword, Bow, Axe, Dagger }
-public enum ArmorType { None, Helmet, Chestplate, Gauntlets, Boots }
+public enum WeaponType { None, Sword, Bow, Axe, Dagger, Mace, Spear }
+public enum ArmorType { None, Helmet, Chestplate, Gauntlets, Boots, Shield }
 public enum MaterialType { None, Wood, Metal, Leather, Cloth, Fuel }
 
 // 기타 속성 클래스

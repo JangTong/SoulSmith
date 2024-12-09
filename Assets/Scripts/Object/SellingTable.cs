@@ -8,6 +8,7 @@ public class SellingTable : MonoBehaviour
     public GameObject objectOnTable = null;    // 테이블 위에 놓인 아이템
     public ItemComponent itemComponent;       // 현재 아이템의 ItemComponent
     public TextMeshProUGUI itemInfoText;      // 아이템 정보를 표시할 UI 텍스트
+    public ParticleSystem coinEffect;
 
     private void Update()
     {
@@ -23,7 +24,7 @@ public class SellingTable : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(objectOnTable == null)
+        if (objectOnTable == null)
         {
             // GameObject에서 ItemComponent 가져오기
             itemComponent = other.GetComponent<ItemComponent>();
@@ -66,6 +67,31 @@ public class SellingTable : MonoBehaviour
         if (itemInfoText != null)
         {
             itemInfoText.text = string.Empty;
+        }
+    }
+
+    /// 아이템 판매 메서드
+    public void SellItem()
+    {
+        if (itemComponent != null)
+        {
+            GameManager.Instance.AddGold(itemComponent.sellPrice);
+
+
+            Debug.Log($"{itemComponent.itemName}을(를) {itemComponent.sellPrice} coins에 판매했습니다.");
+
+            Destroy(objectOnTable);
+            objectOnTable = null;
+            itemComponent = null;
+            coinEffect.Play();
+            SoundManager.Instance.PlaySoundAtPosition("CoinDrop_1", transform.position);
+
+            // UI 정보 초기화
+            ClearItemInfo();
+        }
+        else
+        {
+            Debug.LogWarning("판매할 아이템이 없습니다.");
         }
     }
 }

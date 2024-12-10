@@ -133,7 +133,7 @@ public class Forge : MonoBehaviour
         if (newItemComponent != null)
         {
             // 기본 속성 설정
-            newItemComponent.itemName = "Forged Item";
+            newItemComponent.itemName = "WeaponBase";
             newItemComponent.weight = totalWeight;
             newItemComponent.atkPower = totalAtkPower;
             newItemComponent.defPower = totalDefPower;

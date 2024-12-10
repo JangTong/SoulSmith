@@ -44810,7 +44810,7 @@ PrefabInstance:
         type: 3}
       propertyPath: itemPrefabs.Array.data[0]
       value: 
-      objectReference: {fileID: 5181662726392665999, guid: f07b1e61d7f08c64aa9c3ce325a43328,
+      objectReference: {fileID: 5528167789922007155, guid: 4fb76995d7ac3d44583c256513215a15,
         type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -64276,6 +64276,31 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7324905349535741107, guid: 6b96515795a414c41aed0c107af55b44,
+        type: 3}
+      propertyPath: sfxClips.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7324905349535741107, guid: 6b96515795a414c41aed0c107af55b44,
+        type: 3}
+      propertyPath: sfxClips.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: 17b54400d7f617d4bbf312538e2b5d01, type: 3}
+    - target: {fileID: 7324905349535741107, guid: 6b96515795a414c41aed0c107af55b44,
+        type: 3}
+      propertyPath: sfxClips.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: c6439589bb701ab4e819cd6ebef4c8eb, type: 3}
+    - target: {fileID: 7324905349535741107, guid: 6b96515795a414c41aed0c107af55b44,
+        type: 3}
+      propertyPath: sfxClips.Array.data[3]
+      value: 
+      objectReference: {fileID: 8300000, guid: 25651fc5505fca6418a50fbbc7a9aee7, type: 3}
+    - target: {fileID: 7324905349535741107, guid: 6b96515795a414c41aed0c107af55b44,
+        type: 3}
+      propertyPath: sfxClips.Array.data[4]
+      value: 
+      objectReference: {fileID: 8300000, guid: 317957d16ddfadf41a482f3eea17d0ee, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -74146,7 +74171,7 @@ PrefabInstance:
     - target: {fileID: 3979895905267336788, guid: cf174775fa8758c41a033c13a6bad313,
         type: 3}
       propertyPath: playerGold
-      value: 110
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 8080436617075424530, guid: cf174775fa8758c41a033c13a6bad313,
         type: 3}

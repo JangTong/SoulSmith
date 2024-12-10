@@ -25,7 +25,7 @@ public class HammerHead : MonoBehaviour
             sparkEffect.Play();
         }
 
-        string[] soundNames = { "HammerHeat_1", "HammerHeat_2", "HammerHeat_3" };
+        string[] soundNames = { "HammerHeat_1", "HammerHeat_3"};
         int randIndex = Random.Range(0, soundNames.Length);
         SoundManager.Instance.PlaySoundAtPosition(soundNames[randIndex], transform.position);
 

@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 1582675330903970345}
   - component: {fileID: 8735259350876228511}
   m_Layer: 0
-  m_Name: grinder
+  m_Name: Grinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -178,5 +178,5 @@ MonoBehaviour:
     isCursed: 0
     isBlessed: 0
     specialEffect: 
-  buyPrice: 0
+  buyPrice: 10
   sellPrice: 0

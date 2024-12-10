@@ -46,3 +46,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerGold: 0
   goldText: {fileID: 0}
+  timerText: {fileID: 0}
+  dayText: {fileID: 0}

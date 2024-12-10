@@ -53,8 +53,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.52671146, y: 0.2699362, z: 0.3534147}
-  m_Center: {x: 0.000000010561418, y: 0.09999998, z: -0.11667799}
+  m_Size: {x: 0.52671146, y: 0.2699362, z: 0.58137906}
+  m_Center: {x: 1.4373981e-11, y: 0.09999998, z: -0.0026957667}
 --- !u!198 &4679815225497762619
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -690,7 +690,7 @@ ParticleSystem:
     angle: 15
     length: 5
     boxThickness: {x: 0, y: 0, z: 0}
-    radiusThickness: 0
+    radiusThickness: 1
     donutRadius: 0.2
     m_Position: {x: -0.03, y: 0.1, z: -0.17}
     m_Rotation: {x: 0, y: 0, z: 0}
@@ -5076,7 +5076,6 @@ GameObject:
   - component: {fileID: 5191450335568121102}
   - component: {fileID: 2503140302441745757}
   - component: {fileID: 6051674796370661350}
-  - component: {fileID: 4622098127497816958}
   - component: {fileID: 8155468477269382526}
   m_Layer: 2
   m_Name: Fire
@@ -5150,27 +5149,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &4622098127497816958
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8515886689549961341}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1.8404233}
-  m_Center: {x: 0.000000002632354, y: 0, z: 0.42021227}
 --- !u!114 &8155468477269382526
 MonoBehaviour:
   m_ObjectHideFlags: 0

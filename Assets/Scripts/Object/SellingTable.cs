@@ -57,7 +57,6 @@ public class SellingTable : MonoBehaviour
                 $"<b>Weight:</b> {itemComponent.weight:F2}\n" +
                 $"<b>Attack:</b> {itemComponent.atkPower:F1}\n" +
                 $"<b>Defense:</b> {itemComponent.defPower:F1}\n" +
-                $"<b>Buy Price:</b> {itemComponent.buyPrice} coins\n" +
                 $"<b>Sell Price:</b> {itemComponent.sellPrice} coins";
         }
     }

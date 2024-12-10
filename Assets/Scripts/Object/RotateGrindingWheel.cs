@@ -3,6 +3,7 @@ using System.Collections;
 
 public class RotateGrindingWheel : MonoBehaviour
 {
+    public ParticleSystem sparkEffect;
     public float rotationSpeed = 100f; // 회전 속도
     private bool isPlayerInside = false; // 플레이어가 트리거 안에 있는지 확인
     private Coroutine polishingCoroutine = null; // 현재 연마 작업 코루틴 참조
@@ -62,11 +63,13 @@ public class RotateGrindingWheel : MonoBehaviour
         yield return new WaitForSeconds(delay); // delay 만큼 대기
 
         // 연마 상태 설정
-        if (!item.isPolished) // 추가 안전 확인
+        if (!item.isPolished)
         {
             item.isPolished = true;
             item.atkPower *= 1.1f;
+            item.defPower *= 1.1f;
             Debug.Log($"연마 완료: {item.itemName}, 공격력: {item.atkPower}");
+            sparkEffect.Play();
         }
 
         polishingCoroutine = null; // 코루틴 참조 초기화

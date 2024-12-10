@@ -69,7 +69,7 @@ public class Anvil : MonoBehaviour
             return;
         }
 
-        // 타격횟수 확인 후 무기 생성 및 itemComponent수치 복사
+        // 타격횟수 확인 후 무기 생성
         if(ChechCollisionData(2, 2, 2, 2, 2)) //Sword생성
         {
             if(itemComponent.weight >= 2) // 무게가 2보다 크면 TwoHandedSword생성
@@ -86,10 +86,10 @@ public class Anvil : MonoBehaviour
                     {
                         newItemComponent.itemName = "TwoHandedSword";
                         newItemComponent.weight = itemComponent.weight * 0.8f;
-                        newItemComponent.atkPower = itemComponent.atkPower * 1.2f; // 공격력 20% 증가
-                        newItemComponent.defPower = itemComponent.defPower * 1.05f; // 방어력 5% 증가
-                        newItemComponent.buyPrice = itemComponent.buyPrice + 100; // 구매 가격 증가
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 60; // 판매 가격 증가
+                        newItemComponent.atkPower = itemComponent.atkPower * 1.2f;
+                        newItemComponent.defPower = itemComponent.defPower * 0.8f;
+                        newItemComponent.sellPrice = itemComponent.sellPrice + 60;
+                        newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                         Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
                     }
@@ -109,10 +109,10 @@ public class Anvil : MonoBehaviour
                     {
                         newItemComponent.itemName = "Sword";
                         newItemComponent.weight = itemComponent.weight * 0.8f;
-                        newItemComponent.atkPower = itemComponent.atkPower * 1.2f; // 공격력 20% 증가
-                        newItemComponent.defPower = itemComponent.defPower * 1.05f; // 방어력 5% 증가
-                        newItemComponent.buyPrice = itemComponent.buyPrice + 50; // 구매 가격 증가
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 30; // 판매 가격 증가
+                        newItemComponent.atkPower = itemComponent.atkPower * 1.2f;
+                        newItemComponent.defPower = itemComponent.defPower * 0.8f;
+                        newItemComponent.sellPrice = itemComponent.sellPrice + 30;
+                        newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                         Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
                     }
@@ -138,10 +138,10 @@ public class Anvil : MonoBehaviour
                     {
                         newItemComponent.itemName = "TwoHandedAxe";
                         newItemComponent.weight = itemComponent.weight * 0.8f;
-                        newItemComponent.atkPower = itemComponent.atkPower * 1.3f; // 공격력 30% 증가
-                        newItemComponent.defPower = itemComponent.defPower * 1.00f; // 방어력 0% 증가
-                        newItemComponent.buyPrice = itemComponent.buyPrice + 100; // 구매 가격 증가
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 60; // 판매 가격 증가
+                        newItemComponent.atkPower = itemComponent.atkPower * 1.3f;
+                        newItemComponent.defPower = itemComponent.defPower * 0.6f;
+                        newItemComponent.sellPrice = itemComponent.sellPrice + 60;
+                        newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                         Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
                     }
@@ -164,10 +164,10 @@ public class Anvil : MonoBehaviour
                     {
                         newItemComponent.itemName = "Axe";
                         newItemComponent.weight = itemComponent.weight * 0.8f;
-                        newItemComponent.atkPower = itemComponent.atkPower * 1.3f; // 공격력 20% 증가
-                        newItemComponent.defPower = itemComponent.defPower * 1.00f; // 방어력 5% 증가
-                        newItemComponent.buyPrice = itemComponent.buyPrice + 50; // 구매 가격 증가
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 30; // 판매 가격 증가
+                        newItemComponent.atkPower = itemComponent.atkPower * 1.3f;
+                        newItemComponent.defPower = itemComponent.defPower * 0.6f;
+                        newItemComponent.sellPrice = itemComponent.sellPrice + 30;
+                        newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                         Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
                     }
@@ -191,10 +191,10 @@ public class Anvil : MonoBehaviour
                 {
                     newItemComponent.itemName = "Shield";
                     newItemComponent.weight = itemComponent.weight * 0.8f;
-                    newItemComponent.atkPower = itemComponent.atkPower * 0.5f; // 공격력 0% 증가
-                    newItemComponent.defPower = itemComponent.defPower * 1.2f; // 방어력 5% 증가
-                    newItemComponent.buyPrice = itemComponent.buyPrice + 50; // 구매 가격 증가
-                    newItemComponent.sellPrice = itemComponent.sellPrice + 30; // 판매 가격 증가
+                    newItemComponent.atkPower = itemComponent.atkPower * 0.5f;
+                    newItemComponent.defPower = itemComponent.defPower * 1.2f;
+                    newItemComponent.sellPrice = itemComponent.sellPrice + 30;
+                    newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                     Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
                 }
@@ -217,10 +217,10 @@ public class Anvil : MonoBehaviour
                 {
                     newItemComponent.itemName = "Shield";
                     newItemComponent.weight = itemComponent.weight * 0.6f;
-                    newItemComponent.atkPower = itemComponent.atkPower * 0.5f; // 공격력 0% 증가
-                    newItemComponent.defPower = itemComponent.defPower * 1.15f; // 방어력 5% 증가
-                    newItemComponent.buyPrice = itemComponent.buyPrice + 50; // 구매 가격 증가
-                    newItemComponent.sellPrice = itemComponent.sellPrice + 30; // 판매 가격 증가
+                    newItemComponent.atkPower = itemComponent.atkPower * 0.5f;
+                    newItemComponent.defPower = itemComponent.defPower * 1.15f;
+                    newItemComponent.sellPrice = itemComponent.sellPrice + 30;
+                    newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                     Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
                 }

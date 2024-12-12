@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro; // TextMeshPro 네임스페이스
 
 public class GameManager : MonoBehaviour
@@ -9,9 +10,13 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI goldText; // 소지금을 표시할 TextMeshProUGUI 텍스트
     public TextMeshProUGUI timerText; // 타이머 UI 텍스트
     public TextMeshProUGUI dayText; // 날짜 UI 텍스트
+    public GameObject summaryPanel; // 하루 종료 결과 창 패널
+    public TextMeshProUGUI earningsText; // 하루 번 돈 텍스트
 
     private float timer = 0f; // 초 단위 타이머
     private int currentDay = 1; // 현재 날짜
+    private int dailyEarnings = 0; // 하루 동안 번 돈
+    private bool isDayOver = false; // 하루 종료 여부
 
     private void Awake()
     {
@@ -31,17 +36,28 @@ public class GameManager : MonoBehaviour
     {
         UpdateGoldUI(); // 초기 소지금 표시
         UpdateDayUI(); // 초기 날짜 표시
+        HideSummaryPanel(); // 결과 창 숨기기
     }
 
     private void Update()
     {
-        UpdateTimer();
+        if (!isDayOver)
+        {
+            UpdateTimer();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+
     }
 
     /// 소지금을 증가시킵니다.
     public void AddGold(int amount)
     {
         playerGold += amount;
+        dailyEarnings += amount; // 하루 번 돈 증가
         UpdateGoldUI();
     }
 
@@ -51,6 +67,7 @@ public class GameManager : MonoBehaviour
         if (playerGold >= amount)
         {
             playerGold -= amount;
+            dailyEarnings -= amount;
             UpdateGoldUI();
         }
         else
@@ -100,6 +117,57 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogError("timerText가 설정되지 않았습니다.");
+        }
+
+        // 하루 종료 조건 (예: 1분마다 하루 종료)
+        if (timer >= 180)
+        {
+            EndDay();
+        }
+    }
+
+    /// 하루 종료 처리
+    public void EndDay()
+    {
+        isDayOver = true; // 하루 종료
+        timer = 0; // 타이머 초기화
+
+        // 결과 창 표시
+        ShowSummaryPanel();
+    }
+
+    /// 다음 날 시작
+    public void StartNextDay()
+    {
+        isDayOver = false; // 하루 재개
+        dailyEarnings = 0; // 번 돈 초기화
+        currentDay++; // 다음 날로 이동
+        UpdateDayUI(); // 날짜 UI 업데이트
+        HideSummaryPanel(); // 결과 창 숨기기
+        Debug.Log("새로운 하루가 시작되었습니다.");
+    }
+
+    /// 결과 창 표시
+    private void ShowSummaryPanel()
+    {
+        if (summaryPanel != null)
+        {
+            summaryPanel.SetActive(true);
+            PlayerController.Instance.ToggleUI(true);
+        }
+
+        if (earningsText != null)
+        {
+            earningsText.text = $"MONEY EARNED: {dailyEarnings} Gold";
+        }
+    }
+
+    /// 결과 창 숨기기
+    private void HideSummaryPanel()
+    {
+        if (summaryPanel != null)
+        {
+            summaryPanel.SetActive(false);
         }
     }
 }

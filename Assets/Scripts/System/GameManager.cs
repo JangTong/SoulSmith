@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro; // TextMeshPro 네임스페이스
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     private int currentDay = 1; // 현재 날짜
     private int dailyEarnings = 0; // 하루 동안 번 돈
     private bool isDayOver = false; // 하루 종료 여부
+    private bool isTimePaused = false; // 시간이 멈췄는지 여부
 
     private void Awake()
     {
@@ -41,7 +42,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (!isDayOver)
+        if (!isDayOver && !isTimePaused)
         {
             UpdateTimer();
         }
@@ -50,7 +51,23 @@ public class GameManager : MonoBehaviour
         {
             Application.Quit();
         }
+    }
 
+    /// 시간을 멈추거나 다시 흐르게 설정합니다.
+    public void ToggleTime(bool pause)
+    {
+        isTimePaused = pause;
+
+        if (pause)
+        {
+            Time.timeScale = 0f; // 시간 멈춤
+            Debug.Log("시간이 멈췄습니다.");
+        }
+        else
+        {
+            Time.timeScale = 1f; // 시간 흐름
+            Debug.Log("시간이 다시 흐릅니다.");
+        }
     }
 
     /// 소지금을 증가시킵니다.
@@ -119,7 +136,7 @@ public class GameManager : MonoBehaviour
             Debug.LogError("timerText가 설정되지 않았습니다.");
         }
 
-        // 하루 종료 조건 (예: 1분마다 하루 종료)
+        // 하루 종료 조건 (예: 3분마다 하루 종료)
         if (timer >= 180)
         {
             EndDay();

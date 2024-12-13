@@ -28,10 +28,7 @@ public class PlayerController : MonoBehaviour
         {
             Destroy(gameObject); // 이미 인스턴스가 있다면 중복 제거
         }
-    }
 
-    private void Start()
-    {
         characterController = GetComponent<CharacterController>();
         cameraTransform = Camera.main.transform;
 

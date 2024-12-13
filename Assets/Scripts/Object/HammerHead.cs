@@ -4,7 +4,7 @@ using System.Collections; // IEnumerator를 위한 네임스페이스
 public class HammerHead : MonoBehaviour
 {
     public ParticleSystem sparkEffect; // 불똥 파티클 시스템
-    public float soundDelay = 0.5f;    // 소리 간 딜레이 (초)
+    public float soundDelay = 0.3f;    // 소리 간 딜레이 (초)
     private bool isPlayingSound = false; // 현재 소리가 재생 중인지 확인
 
     private void OnTriggerEnter(Collider other)

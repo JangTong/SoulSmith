@@ -26,7 +26,7 @@ public class RotateGrindingWheel : MonoBehaviour
                     StopCoroutine(polishingCoroutine);
                 }
                 // 새로운 코루틴 시작
-                polishingCoroutine = StartCoroutine(PolishItemAfterDelay(polishingItem, 5f)); // 5초 후 연마
+                polishingCoroutine = StartCoroutine(PolishItemAfterDelay(polishingItem, 4f)); // 5초 후 연마
             }
         }
     }
@@ -68,6 +68,7 @@ public class RotateGrindingWheel : MonoBehaviour
             item.isPolished = true;
             item.atkPower *= 1.1f;
             item.defPower *= 1.1f;
+            item.sellPrice += 5;
             Debug.Log($"연마 완료: {item.itemName}, 공격력: {item.atkPower}");
             sparkEffect.Play();
         }

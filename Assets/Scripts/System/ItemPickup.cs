@@ -207,7 +207,7 @@ public class ItemPickup : MonoBehaviour
         {
             if(pickedItemComp.itemType != ItemType.Weapon)return;
             // 장착: 화면 우측 하단에 배치
-            pickedItem.transform.DOLocalMove(new Vector3(0.5f, -0.5f, 0.75f), 0.2f).SetEase(Ease.InOutQuad);
+            pickedItem.transform.DOLocalMove(new Vector3(0.5f, -0.5f, 0.5f), 0.2f).SetEase(Ease.InOutQuad);
             pickedItem.transform.DOLocalRotate(new Vector3(-45, 0, 90), 0.2f);
             isEquipped = true;
         }
@@ -228,13 +228,13 @@ public class ItemPickup : MonoBehaviour
         Vector3 endRotation = new Vector3(-20, 0, 90);
     
         Vector3 middlePosition = new Vector3(0.5f, 0.5f, 0.5f);
-        Vector3 endPosition = new Vector3(0, -0.2f, 1f);
+        Vector3 endPosition = new Vector3(0, 0f, 1f);
 
 
         DG.Tweening.Sequence swingSequence = DOTween.Sequence();
 
-        swingSequence.Append(pickedItem.transform.DOLocalRotate(middleRotation, 0.3f).SetEase(Ease.InOutQuad));
-        swingSequence.Join(pickedItem.transform.DOLocalMove(middlePosition, 0.3f).SetEase(Ease.InOutQuad));
+        swingSequence.Append(pickedItem.transform.DOLocalRotate(middleRotation, 0.33f).SetEase(Ease.InOutQuad));
+        swingSequence.Join(pickedItem.transform.DOLocalMove(middlePosition, 0.33f).SetEase(Ease.InOutQuad));
 
         swingSequence.Append(pickedItem.transform.DOLocalRotate(endRotation, 0.07f).SetEase(Ease.OutCubic));
         swingSequence.Join(pickedItem.transform.DOLocalMove(endPosition, 0.07f).SetEase(Ease.OutCubic));

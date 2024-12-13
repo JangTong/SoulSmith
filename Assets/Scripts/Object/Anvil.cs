@@ -88,7 +88,7 @@ public class Anvil : MonoBehaviour
                         newItemComponent.weight = itemComponent.weight * 0.8f;
                         newItemComponent.atkPower = itemComponent.atkPower * 1.2f;
                         newItemComponent.defPower = itemComponent.defPower * 0.8f;
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 60;
+                        newItemComponent.sellPrice = itemComponent.sellPrice + 60 + (int)(newItemComponent.atkPower * 2.2f);
                         newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                         Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
@@ -111,7 +111,7 @@ public class Anvil : MonoBehaviour
                         newItemComponent.weight = itemComponent.weight * 0.8f;
                         newItemComponent.atkPower = itemComponent.atkPower * 1.2f;
                         newItemComponent.defPower = itemComponent.defPower * 0.8f;
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 30;
+                        newItemComponent.sellPrice = itemComponent.sellPrice + 30 + (int)(newItemComponent.atkPower * 2f);
                         newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                         Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
@@ -140,7 +140,7 @@ public class Anvil : MonoBehaviour
                         newItemComponent.weight = itemComponent.weight * 0.8f;
                         newItemComponent.atkPower = itemComponent.atkPower * 1.3f;
                         newItemComponent.defPower = itemComponent.defPower * 0.6f;
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 60;
+                        newItemComponent.sellPrice = itemComponent.sellPrice + 60 + (int)(newItemComponent.atkPower * 2.1f);
                         newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                         Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
@@ -166,7 +166,7 @@ public class Anvil : MonoBehaviour
                         newItemComponent.weight = itemComponent.weight * 0.8f;
                         newItemComponent.atkPower = itemComponent.atkPower * 1.3f;
                         newItemComponent.defPower = itemComponent.defPower * 0.6f;
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 30;
+                        newItemComponent.sellPrice = itemComponent.sellPrice + 30 + (int)(newItemComponent.atkPower * 1.9f);
                         newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                         Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
@@ -193,7 +193,7 @@ public class Anvil : MonoBehaviour
                     newItemComponent.weight = itemComponent.weight * 0.8f;
                     newItemComponent.atkPower = itemComponent.atkPower * 0.5f;
                     newItemComponent.defPower = itemComponent.defPower * 1.2f;
-                    newItemComponent.sellPrice = itemComponent.sellPrice + 30;
+                    newItemComponent.sellPrice = itemComponent.sellPrice + 30 + (int)(newItemComponent.defPower * 2f);
                     newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                     Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
@@ -219,7 +219,33 @@ public class Anvil : MonoBehaviour
                     newItemComponent.weight = itemComponent.weight * 0.6f;
                     newItemComponent.atkPower = itemComponent.atkPower * 0.5f;
                     newItemComponent.defPower = itemComponent.defPower * 1.15f;
-                    newItemComponent.sellPrice = itemComponent.sellPrice + 30;
+                    newItemComponent.sellPrice = itemComponent.sellPrice + 30 + (int)(newItemComponent.defPower * 2.2f);
+                    newItemComponent.buyPrice = itemComponent.sellPrice * 2;
+
+                    Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
+                }
+            }
+            Destroy(objectOnAnvil);
+            objectOnAnvil = null;
+            sparkEffect.Play();
+        }
+        else if(ChechCollisionDataSum() >= 20) // Dagger생성(20회 이상 타격 시)
+        {
+            GameObject daggerPrefab = weaponList.Find(weapon => weapon.name == "Dagger");
+
+            if (daggerPrefab != null)
+            {
+                GameObject newWeapon = Instantiate(daggerPrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
+
+                ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
+
+                if (newItemComponent != null)
+                {
+                    newItemComponent.itemName = "Dagger";
+                    newItemComponent.weight = itemComponent.weight * 0.3f;
+                    newItemComponent.atkPower = itemComponent.atkPower * 1.05f;
+                    newItemComponent.defPower = itemComponent.defPower * 0.3f;
+                    newItemComponent.sellPrice = itemComponent.sellPrice + 20 + (int)(newItemComponent.atkPower * 2f);
                     newItemComponent.buyPrice = itemComponent.sellPrice * 2;
 
                     Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
@@ -247,5 +273,13 @@ public class Anvil : MonoBehaviour
         }
 
         return isSame;
+    }
+
+    private int ChechCollisionDataSum()
+    {
+        WeaponBase weaponBase = objectOnAnvil.GetComponent<WeaponBase>();
+        int collsionSum = 0;
+        for(int i = 0; i < 5; i++)collsionSum += weaponBase.collisionDataList[i].collisionCount;
+        return collsionSum;
     }
 }

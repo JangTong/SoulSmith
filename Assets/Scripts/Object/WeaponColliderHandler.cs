@@ -35,7 +35,7 @@ public class WeaponColliderHandler : MonoBehaviour
             IncreaseEmissionIntensity(1f);
 
             // Trigger 감지를 잠시 비활성화
-            StartCoroutine(DelayTriggerDetection(0.7f)); // 0.7초 딜레이
+            StartCoroutine(DelayTriggerDetection(0.6f)); // 0.7초 딜레이
         }
     }
 

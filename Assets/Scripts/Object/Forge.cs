@@ -59,7 +59,7 @@ public class Forge : MonoBehaviour
         }
 
         // Metal:Fuel 비율이 1:1이 아닌 경우 작동하지 않음
-        if (metalCount != fuelCount)
+        if (metalCount != fuelCount && metalCount > 0 && fuelCount > 0)
         {
             Debug.LogWarning($"Forging 실패: Metal과 Fuel의 비율이 1:1이 아닙니다. (Metal: {metalCount}, Fuel: {fuelCount})");
             yield break;

@@ -15,6 +15,7 @@ public class ItemComponent : MonoBehaviour
     public Rarity itemRarity = Rarity.None;   // 희귀도
     public ItemType itemType = ItemType.None; // 아이템 타입
     public WeaponType weaponType = WeaponType.None; // 무기 타입
+    public PartsType  partsType = PartsType.None;
     public ArmorType armorType = ArmorType.None;     // 방어구 타입
     public MaterialType materialType = MaterialType.None; // 소재 타입
 
@@ -36,15 +37,14 @@ public class ItemComponent : MonoBehaviour
     public int buyPrice;                     // 구매 가격
     public int sellPrice;                    // 판매 가격
 
-    /// <summary>
     /// 아이템 초기화 메서드 (외부에서 데이터 적용 가능)
-    /// </summary>
     public void Initialize(
         string itemName,
         string description,
         Rarity rarity,
         ItemType itemType,
         WeaponType weaponType,
+        PartsType partsType,
         ArmorType armorType,
         MaterialType materialType,
         float weight,
@@ -62,6 +62,7 @@ public class ItemComponent : MonoBehaviour
         this.itemRarity = rarity;
         this.itemType = itemType;
         this.weaponType = weaponType;
+        this.partsType = partsType;
         this.armorType = armorType;
         this.materialType = materialType;
         this.weight = weight;
@@ -84,6 +85,7 @@ public class ItemComponent : MonoBehaviour
 public enum Rarity { None, Common, Uncommon, Rare, Epic, Legendary }
 public enum ItemType { None, Weapon, Armor, Consumable, Resource, QuestItem }
 public enum WeaponType { None, Sword, Bow, Axe, Dagger, Mace, Spear }
+public enum PartsType { None, Blade, Handle, Grip, Guard, Pommel }
 public enum ArmorType { None, Helmet, Chestplate, Gauntlets, Boots, Shield }
 public enum MaterialType { None, Wood, Metal, Leather, Cloth, Fuel }
 

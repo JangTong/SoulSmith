@@ -65,3 +65,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dialogueText: {fileID: 0}
   dialoguePanel: {fileID: 0}
+  nextButton: {fileID: 0}
+  currentDialogue: {fileID: 0}

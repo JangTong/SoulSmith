@@ -5,7 +5,7 @@ public class PlayerController : MonoBehaviour
     public static PlayerController Instance; // 싱글톤 인스턴스
 
     public float moveSpeed = 5f;           // 이동 속도
-    public float lookSpeed = 2f;           // 회전 속도
+    public float lookSpeed = 1.5f;           // 회전 속도
     public float jumpForce = 1f;           // 점프 힘
     public float gravity = -9.81f;         // 중력 값
 

@@ -41,7 +41,8 @@ public class Forge : MonoBehaviour
         // MaterialType 개수 확인
         int metalCount = 0;
         int fuelCount = 0;
-
+        Color totalMetalColor = Color.black; // 초기값은 검은색 (가산혼합 초기화)
+        
         foreach (var item in storedItems)
         {
             ItemComponent itemComponent = item.GetComponent<ItemComponent>();
@@ -50,6 +51,7 @@ public class Forge : MonoBehaviour
                 if (itemComponent.materialType == MaterialType.Metal)
                 {
                     metalCount++;
+                    totalMetalColor = AdditiveBlend(totalMetalColor, itemComponent.itemColor);
                 }
                 else if (itemComponent.materialType == MaterialType.Fuel)
                 {
@@ -126,7 +128,7 @@ public class Forge : MonoBehaviour
         ItemComponent newItemComponent = newItem.GetComponent<ItemComponent>();
         Rigidbody newItemRb = newItem.GetComponent<Rigidbody>();
 
-        newItemRb.isKinematic = true;
+        newItemRb.isKinematic = false;
         newItem.transform.SetParent(targetPosition);
         newItem.transform.localPosition = Vector3.zero;
 
@@ -148,6 +150,7 @@ public class Forge : MonoBehaviour
             // 추가 속성 설정
             newItemComponent.materialType = MaterialType.Metal;
             newItemComponent.itemRarity = Rarity.Uncommon;
+            newItemComponent.itemColor = totalMetalColor; // 가산 혼합된 색상 적용
 
             Debug.Log($"새로운 아이템 생성: {newItemComponent.itemName} - " +
                       $"무게: {newItemComponent.weight}, 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}, " +
@@ -171,20 +174,6 @@ public class Forge : MonoBehaviour
         // Items 태그를 가진 오브젝트가 Trigger에 들어왔을 때 처리
         if (other.CompareTag("Items") && !ItemPickup.Instance.isEquipped && !ItemPickup.Instance.isSwinging)
         {
-            // Rigidbody 가져오기
-            Rigidbody rb = other.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.isKinematic = true; // Rigidbody를 Kinematic으로 설정
-            }
-
-            // 랜덤 위치 계산
-            Vector3 randomPosition = GetRandomPosition();
-
-            // 닿은 오브젝트를 targetPosition 내부로 이동
-            other.transform.SetParent(targetPosition);
-            other.transform.localPosition = randomPosition; // 랜덤 위치로 설정
-
             // 배열에 추가
             if (!storedItems.Contains(other.gameObject))
             {
@@ -206,16 +195,19 @@ public class Forge : MonoBehaviour
         }
     }
 
-    private Vector3 GetRandomPosition()
+    private Color AdditiveBlend(Color color1, Color color2)
     {
-        float randomX = Random.Range(-randomRange.x, randomRange.x);
-        float randomY = Random.Range(-randomRange.y, randomRange.y);
-        float randomZ = Random.Range(-randomRange.z, randomRange.z);
-        return new Vector3(randomX, randomY, randomZ);
+        return new Color(
+            Mathf.Min(color1.r + color2.r, 1f),
+            Mathf.Min(color1.g + color2.g, 1f),
+            Mathf.Min(color1.b + color2.b, 1f),
+            Mathf.Min(color1.a + color2.a, 1f)
+        );
     }
 
     public List<GameObject> GetStoredItems()
     {
         return storedItems;
     }
+    
 }

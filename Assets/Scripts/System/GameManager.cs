@@ -137,7 +137,7 @@ public class GameManager : MonoBehaviour
         }
 
         // 하루 종료 조건 (예: 3분마다 하루 종료)
-        if (timer >= 180)
+        if (timer >= 300)
         {
             EndDay();
         }

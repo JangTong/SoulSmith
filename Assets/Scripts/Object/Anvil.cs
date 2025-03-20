@@ -17,25 +17,22 @@ public class Anvil : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // GameObject에서 ItemComponent 가져오기
         itemComponent = other.GetComponent<ItemComponent>();
-        
 
-        // ItemComponent가 존재하고 조건을 만족하는 경우 처리
-        if (!ItemPickup.Instance.isSwinging && !ItemPickup.Instance.isEquipped && objectOnAnvil == null && itemComponent != null && itemComponent.itemType == ItemType.Resource && itemComponent.materialType == MaterialType.Metal)
+        if (!ItemPickup.Instance.isSwinging && !ItemPickup.Instance.isEquipped &&
+            objectOnAnvil == null && itemComponent != null &&
+            itemComponent.itemType == ItemType.Resource && itemComponent.materialType == MaterialType.Metal)
         {
             objectOnAnvil = other.gameObject;
 
-            // Rigidbody 가져오기
             Rigidbody rb = other.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.isKinematic = true; // Rigidbody를 Kinematic으로 설정
+                rb.isKinematic = true;
             }
 
-            // Item의 부모를 Anvil로 설정하고 위치 고정
             other.transform.SetParent(fixedPosition);
-            other.transform.localPosition = Vector3.zero; // 자식 위치로 고정
+            other.transform.localPosition = Vector3.zero;
 
             Debug.Log($"{other.name}이(가) Anvil에 고정되었습니다.");
             WeaponColliderHandler.canDetect = true;
@@ -44,10 +41,9 @@ public class Anvil : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        // Trigger를 벗어난 오브젝트가 objectOnAnvil과 동일한 경우 초기화
         if (objectOnAnvil == other.gameObject)
         {
-            objectOnAnvil = null; // 초기화
+            objectOnAnvil = null;
             Debug.Log($"{other.name}이(가) Anvil에서 제거되었습니다.");
             WeaponColliderHandler.canDetect = false;
         }
@@ -55,11 +51,8 @@ public class Anvil : MonoBehaviour
 
     public void CreateWeapon()
     {
+        if (objectOnAnvil == null) return;
 
-        // 조건 확인
-        if (objectOnAnvil == null)return;
-
-        // ItemComponent와 WeaponBase 컴포넌트 가져오기
         itemComponent = objectOnAnvil.GetComponent<ItemComponent>();
         weaponBase = objectOnAnvil.GetComponent<WeaponBase>();
 
@@ -69,217 +62,96 @@ public class Anvil : MonoBehaviour
             return;
         }
 
-        // 타격횟수 확인 후 무기 생성
-        if(ChechCollisionData(2, 2, 2, 2, 2)) //Sword생성
+        // 무기 종류 판별 및 생성
+        if (ChechCollisionData(2, 2, 2, 2, 2)) // Sword
         {
-            if(itemComponent.weight >= 2) // 무게가 2보다 크면 TwoHandedSword생성
-            {
-                GameObject swordPrefab = weaponList.Find(weapon => weapon.name == "TwoHandedSword");
-
-                if (swordPrefab != null)
-                {
-                    GameObject newWeapon = Instantiate(swordPrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
-
-                    ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
-
-                    if (newItemComponent != null)
-                    {
-                        newItemComponent.itemName = "TwoHandedSword";
-                        newItemComponent.weight = itemComponent.weight * 0.8f;
-                        newItemComponent.atkPower = itemComponent.atkPower * 1.2f;
-                        newItemComponent.defPower = itemComponent.defPower * 0.8f;
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 60 + (int)(newItemComponent.atkPower * 2.2f);
-                        newItemComponent.buyPrice = itemComponent.sellPrice * 2;
-
-                        Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
-                    }
-                }
-            }
-            else // Sword 생성
-            {
-                GameObject swordPrefab = weaponList.Find(weapon => weapon.name == "Sword");
-
-                if (swordPrefab != null)
-                {
-                    GameObject newWeapon = Instantiate(swordPrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
-
-                    ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
-
-                    if (newItemComponent != null)
-                    {
-                        newItemComponent.itemName = "Sword";
-                        newItemComponent.weight = itemComponent.weight * 0.8f;
-                        newItemComponent.atkPower = itemComponent.atkPower * 1.2f;
-                        newItemComponent.defPower = itemComponent.defPower * 0.8f;
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 30 + (int)(newItemComponent.atkPower * 2f);
-                        newItemComponent.buyPrice = itemComponent.sellPrice * 2;
-
-                        Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
-                    }
-                }
-            }
-            Destroy(objectOnAnvil);
-            objectOnAnvil = null;
-            sparkEffect.Play();
+            string weaponName = (itemComponent.weight >= 2) ? "TwoHandedSword" : "One_Handed_Sword_Blade";
+            CreateWeaponInstance(weaponName, 0.8f, 1.2f, 0.8f, 30, 2.2f);
         }
-        else if(ChechCollisionData(1, 1, 1, 1, 3)) //Axe생성
+        else if (ChechCollisionData(1, 1, 1, 1, 3)) // Axe
         {
-            if(itemComponent.weight >= 2) // 무게가 2보다 크면 TwoHandedAxe생성
-            {
-                GameObject axePrefab = weaponList.Find(weapon => weapon.name == "TwoHandedAxe");
-
-                if (axePrefab != null)
-                {
-                    GameObject newWeapon = Instantiate(axePrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
-
-                    ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
-
-                    if (newItemComponent != null)
-                    {
-                        newItemComponent.itemName = "TwoHandedAxe";
-                        newItemComponent.weight = itemComponent.weight * 0.8f;
-                        newItemComponent.atkPower = itemComponent.atkPower * 1.3f;
-                        newItemComponent.defPower = itemComponent.defPower * 0.6f;
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 60 + (int)(newItemComponent.atkPower * 2.1f);
-                        newItemComponent.buyPrice = itemComponent.sellPrice * 2;
-
-                        Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
-                    }
-                }
-                Destroy(objectOnAnvil);
-                objectOnAnvil = null;
-                sparkEffect.Play();
-            }
-            else
-            {
-                GameObject axePrefab = weaponList.Find(weapon => weapon.name == "Axe");
-
-                if (axePrefab != null)
-                {
-                    GameObject newWeapon = Instantiate(axePrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
-
-                    ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
-
-                    if (newItemComponent != null)
-                    {
-                        newItemComponent.itemName = "Axe";
-                        newItemComponent.weight = itemComponent.weight * 0.8f;
-                        newItemComponent.atkPower = itemComponent.atkPower * 1.3f;
-                        newItemComponent.defPower = itemComponent.defPower * 0.6f;
-                        newItemComponent.sellPrice = itemComponent.sellPrice + 30 + (int)(newItemComponent.atkPower * 1.9f);
-                        newItemComponent.buyPrice = itemComponent.sellPrice * 2;
-
-                        Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
-                    }
-                }
-                Destroy(objectOnAnvil);
-                objectOnAnvil = null;
-                sparkEffect.Play();
-            }
+            string weaponName = (itemComponent.weight >= 2) ? "TwoHandedAxe" : "Axe_Blade";
+            CreateWeaponInstance(weaponName, 0.8f, 1.3f, 0.6f, 30, 1.9f);
         }
-        else if(ChechCollisionData(2, 2, 2, 2, 0)) // Shield생성
+        else if (ChechCollisionData(2, 2, 2, 2, 0)) // Shield
         {
-            GameObject shieldPrefab = weaponList.Find(weapon => weapon.name == "Shield");
-
-            if (shieldPrefab != null)
-            {
-                GameObject newWeapon = Instantiate(shieldPrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
-
-                ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
-
-                if (newItemComponent != null)
-                {
-                    newItemComponent.itemName = "Shield";
-                    newItemComponent.weight = itemComponent.weight * 0.8f;
-                    newItemComponent.atkPower = itemComponent.atkPower * 0.5f;
-                    newItemComponent.defPower = itemComponent.defPower * 1.2f;
-                    newItemComponent.sellPrice = itemComponent.sellPrice + 30 + (int)(newItemComponent.defPower * 2f);
-                    newItemComponent.buyPrice = itemComponent.sellPrice * 2;
-
-                    Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
-                }
-            }
-            Destroy(objectOnAnvil);
-            objectOnAnvil = null;
-            sparkEffect.Play();
+            CreateWeaponInstance("Shield", 0.8f, 0.5f, 1.2f, 30, 2.0f);
         }
-        else if(ChechCollisionData(1, 1, 2, 2, 1)) // RoundShield생성
+        else if (ChechCollisionData(1, 1, 2, 2, 1)) // RoundShield
         {
-            GameObject shieldPrefab = weaponList.Find(weapon => weapon.name == "RoundShield");
-
-            if (shieldPrefab != null)
-            {
-                GameObject newWeapon = Instantiate(shieldPrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
-
-                ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
-
-                if (newItemComponent != null)
-                {
-                    newItemComponent.itemName = "Shield";
-                    newItemComponent.weight = itemComponent.weight * 0.6f;
-                    newItemComponent.atkPower = itemComponent.atkPower * 0.5f;
-                    newItemComponent.defPower = itemComponent.defPower * 1.15f;
-                    newItemComponent.sellPrice = itemComponent.sellPrice + 30 + (int)(newItemComponent.defPower * 2.2f);
-                    newItemComponent.buyPrice = itemComponent.sellPrice * 2;
-
-                    Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
-                }
-            }
-            Destroy(objectOnAnvil);
-            objectOnAnvil = null;
-            sparkEffect.Play();
+            CreateWeaponInstance("RoundShield", 0.6f, 0.5f, 1.15f, 30, 2.2f);
         }
-        else if(ChechCollisionDataSum() >= 20) // Dagger생성(20회 이상 타격 시)
+        else if (ChechCollisionDataSum() >= 20) // Dagger (20회 이상 타격)
         {
-            GameObject daggerPrefab = weaponList.Find(weapon => weapon.name == "Dagger");
-
-            if (daggerPrefab != null)
-            {
-                GameObject newWeapon = Instantiate(daggerPrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
-
-                ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
-
-                if (newItemComponent != null)
-                {
-                    newItemComponent.itemName = "Dagger";
-                    newItemComponent.weight = itemComponent.weight * 0.3f;
-                    newItemComponent.atkPower = itemComponent.atkPower * 1.05f;
-                    newItemComponent.defPower = itemComponent.defPower * 0.3f;
-                    newItemComponent.sellPrice = itemComponent.sellPrice + 20 + (int)(newItemComponent.atkPower * 2f);
-                    newItemComponent.buyPrice = itemComponent.sellPrice * 2;
-
-                    Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}");
-                }
-            }
-            Destroy(objectOnAnvil);
-            objectOnAnvil = null;
-            sparkEffect.Play();
+            CreateWeaponInstance("Dagger", 0.3f, 1.05f, 0.3f, 20, 2.0f);
         }
-        return;
     }
 
-    // 타격횟수 조건체크
+    private void CreateWeaponInstance(string weaponName, float weightFactor, float atkFactor, float defFactor, int basePrice, float priceMultiplier)
+    {
+        GameObject weaponPrefab = weaponList.Find(weapon => weapon.name == weaponName);
+        if (weaponPrefab == null)
+        {
+            Debug.LogError($"무기 프리팹을 찾을 수 없습니다: {weaponName}");
+            return;
+        }
+
+        GameObject newWeapon = Instantiate(weaponPrefab, fixedPosition.position, objectOnAnvil.transform.rotation * Quaternion.Euler(0, 90, 0));
+        ItemComponent newItemComponent = newWeapon.GetComponent<ItemComponent>();
+
+        if (newItemComponent != null)
+        {
+            newItemComponent.itemName = weaponName;
+            newItemComponent.weight = itemComponent.weight * weightFactor;
+            newItemComponent.atkPower = itemComponent.atkPower * atkFactor;
+            newItemComponent.defPower = itemComponent.defPower * defFactor;
+            newItemComponent.sellPrice = itemComponent.sellPrice + basePrice + (int)(newItemComponent.atkPower * priceMultiplier);
+            newItemComponent.buyPrice = newItemComponent.sellPrice * 2;
+
+            // 기존 오브젝트 색상을 적용
+            newItemComponent.itemColor = itemComponent.itemColor;
+
+            Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}, 색상: {newItemComponent.itemColor}");
+        }
+
+        // 머테리얼 색상 적용
+        ApplyMaterialColor(newWeapon, newItemComponent.itemColor);
+
+        Destroy(objectOnAnvil);
+        objectOnAnvil = null;
+        sparkEffect.Play();
+    }
+
+    private void ApplyMaterialColor(GameObject weapon, Color color)
+    {
+        Renderer weaponRenderer = weapon.GetComponent<Renderer>();
+        if (weaponRenderer != null)
+        {
+            weaponRenderer.material = new Material(weaponRenderer.material); // 머테리얼 인스턴스화
+            weaponRenderer.material.color = color; // 색상 적용
+        }
+    }
+
     private bool ChechCollisionData(int a, int b, int c, int d, int e)
     {
         WeaponBase weaponBase = objectOnAnvil.GetComponent<WeaponBase>();
-        bool isSame = false;
-        if(weaponBase.collisionDataList[0].collisionCount == a &&
-        weaponBase.collisionDataList[1].collisionCount == b &&
-        weaponBase.collisionDataList[2].collisionCount == c &&
-        weaponBase.collisionDataList[3].collisionCount == d &&
-        weaponBase.collisionDataList[4].collisionCount == e)
-        {
-            isSame = true;
-        }
-
-        return isSame;
+        return weaponBase != null &&
+               weaponBase.collisionDataList[0].collisionCount == a &&
+               weaponBase.collisionDataList[1].collisionCount == b &&
+               weaponBase.collisionDataList[2].collisionCount == c &&
+               weaponBase.collisionDataList[3].collisionCount == d &&
+               weaponBase.collisionDataList[4].collisionCount == e;
     }
 
     private int ChechCollisionDataSum()
     {
         WeaponBase weaponBase = objectOnAnvil.GetComponent<WeaponBase>();
-        int collsionSum = 0;
-        for(int i = 0; i < 5; i++)collsionSum += weaponBase.collisionDataList[i].collisionCount;
-        return collsionSum;
+        int collisionSum = 0;
+        if (weaponBase != null)
+        {
+            for (int i = 0; i < 5; i++)
+                collisionSum += weaponBase.collisionDataList[i].collisionCount;
+        }
+        return collisionSum;
     }
 }

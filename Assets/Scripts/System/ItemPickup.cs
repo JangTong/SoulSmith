@@ -13,7 +13,7 @@ public class ItemPickup : MonoBehaviour
     public TextMeshProUGUI itemNameText;       // 아이템 이름을 표시할 UI 텍스트
     public GameObject pickedItem = null;      // 현재 플레이어가 들고 있는 아이템 (GameObject 타입)
     public float rotationSpeed = 100f;         // 아이템 회전 속도 (마우스 스크롤로 제어)
-    public float pickupDistance = 3f;          // 아이템을 줍는 최대 거리
+    public float pickupDistance = 4f;          // 아이템을 줍는 최대 거리
     public bool canPickUp = true;              // 아이템 줍기 가능 여부
     public bool isEquipped = false;           // 아이템이 장착되었는지 여부
     public bool isSwinging = false;           // 아이템 휘두르기 상태

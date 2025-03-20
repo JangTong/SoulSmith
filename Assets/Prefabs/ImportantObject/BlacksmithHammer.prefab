@@ -5079,6 +5079,7 @@ MonoBehaviour:
   itemRarity: 1
   itemType: 1
   weaponType: 0
+  partsType: 0
   armorType: 0
   materialType: 2
   weight: 1

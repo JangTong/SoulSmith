@@ -197,7 +197,7 @@ MonoBehaviour:
   itemNameText: {fileID: 0}
   pickedItem: {fileID: 0}
   rotationSpeed: 100
-  pickupDistance: 2
+  pickupDistance: 4
   canPickUp: 1
   isEquipped: 0
   isSwinging: 0

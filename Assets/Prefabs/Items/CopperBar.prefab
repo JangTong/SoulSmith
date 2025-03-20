@@ -29,9 +29,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 854268278939408518}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.77, y: 0.77, z: 0.77}
+  m_LocalScale: {x: 0.49999994, y: 0.49999994, z: 0.49999994}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -100,10 +100,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Copper Bar
   description: 
-  itemColor: {r: 0.6862745, g: 0.3921569, b: 0, a: 1}
+  itemColor: {r: 0.7803922, g: 0.5803922, b: 0.34901962, a: 1}
   itemRarity: 1
   itemType: 4
   weaponType: 0
+  partsType: 0
   armorType: 0
   materialType: 2
   weight: 1

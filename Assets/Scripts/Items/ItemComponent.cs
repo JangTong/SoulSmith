@@ -37,6 +37,9 @@ public class ItemComponent : MonoBehaviour
     public int buyPrice;                     // 구매 가격
     public int sellPrice;                    // 판매 가격
 
+    [Header("System Flags")]
+    public bool canCombine = true;  
+
     /// 아이템 초기화 메서드 (외부에서 데이터 적용 가능)
     public void Initialize(
         string itemName,
@@ -54,7 +57,8 @@ public class ItemComponent : MonoBehaviour
         SpecialAttributes specialAttributes,
         int buyPrice,
         int sellPrice,
-        Color? itemColor = null
+        Color? itemColor = null,
+        bool canCombine = true
     )
     {
         this.itemName = itemName;
@@ -73,13 +77,60 @@ public class ItemComponent : MonoBehaviour
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
         this.itemColor = itemColor ?? Color.white;
+        this.canCombine = canCombine;
     }
 
     public override string ToString()
     {
         return $"{itemName} (Rarity: {itemRarity}, Type: {itemType}, Weight: {weight}, Value: {buyPrice}/{sellPrice}";
     }
-}
+
+    // 다른 ItemComponent의 스탯을 이 객체에 더함
+    public void AddStatsFrom(ItemComponent other)
+    {
+        atkPower += other.atkPower;
+        defPower += other.defPower;
+        weight += other.weight;
+
+        elementalMana.fire += other.elementalMana.fire;
+        elementalMana.water += other.elementalMana.water;
+        elementalMana.earth += other.elementalMana.earth;
+        elementalMana.air += other.elementalMana.air;
+
+        elementalResistance.fireResistance += other.elementalResistance.fireResistance;
+        elementalResistance.waterResistance += other.elementalResistance.waterResistance;
+        elementalResistance.earthResistance += other.elementalResistance.earthResistance;
+        elementalResistance.airResistance += other.elementalResistance.airResistance;
+
+        elementalAffinity.fireAffinity += other.elementalAffinity.fireAffinity;
+        elementalAffinity.waterAffinity += other.elementalAffinity.waterAffinity;
+        elementalAffinity.earthAffinity += other.elementalAffinity.earthAffinity;
+        elementalAffinity.airAffinity += other.elementalAffinity.airAffinity;
+    }
+
+    // 다른 ItemComponent의 스탯을 이 객체에서 뺌
+    public void SubtractStatsFrom(ItemComponent other)
+    {
+        atkPower -= other.atkPower;
+        defPower -= other.defPower;
+        weight -= other.weight;
+
+        elementalMana.fire -= other.elementalMana.fire;
+        elementalMana.water -= other.elementalMana.water;
+        elementalMana.earth -= other.elementalMana.earth;
+        elementalMana.air -= other.elementalMana.air;
+
+        elementalResistance.fireResistance -= other.elementalResistance.fireResistance;
+        elementalResistance.waterResistance -= other.elementalResistance.waterResistance;
+        elementalResistance.earthResistance -= other.elementalResistance.earthResistance;
+        elementalResistance.airResistance -= other.elementalResistance.airResistance;
+
+        elementalAffinity.fireAffinity -= other.elementalAffinity.fireAffinity;
+        elementalAffinity.waterAffinity -= other.elementalAffinity.waterAffinity;
+        elementalAffinity.earthAffinity -= other.elementalAffinity.earthAffinity;
+        elementalAffinity.airAffinity -= other.elementalAffinity.airAffinity;
+    }
+    }
 
 // 속성 관련 열거형 (기본 값 설정)
 public enum Rarity { None, Common, Uncommon, Rare, Epic, Legendary }

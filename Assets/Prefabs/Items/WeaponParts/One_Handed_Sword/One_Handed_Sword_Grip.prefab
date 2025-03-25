@@ -132,6 +132,7 @@ MonoBehaviour:
     specialEffect: 
   buyPrice: 0
   sellPrice: 0
+  canCombine: 1
 --- !u!54 &7445355540214534839
 Rigidbody:
   m_ObjectHideFlags: 0

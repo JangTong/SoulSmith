@@ -7,6 +7,14 @@ public class RotateGrindingWheel : MonoBehaviour
     public float rotationSpeed = 100f; // 회전 속도
     private bool isPlayerInside = false; // 플레이어가 트리거 안에 있는지 확인
     private Coroutine polishingCoroutine = null; // 현재 연마 작업 코루틴 참조
+    public int minTime; // 최소 연마 시간
+    public int maxTime; // 최대 연마 시간
+    private Material sparkMaterial;
+
+    private void Start()
+    {
+        
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -26,7 +34,8 @@ public class RotateGrindingWheel : MonoBehaviour
                     StopCoroutine(polishingCoroutine);
                 }
                 // 새로운 코루틴 시작
-                polishingCoroutine = StartCoroutine(PolishItemAfterDelay(polishingItem, 4f)); // 5초 후 연마
+                int polishTime = Random.Range(minTime, maxTime + 1);
+                polishingCoroutine = StartCoroutine(PolishItemAfterDelay(polishingItem, polishTime)); // 무작위 초 후 연마
             }
         }
     }
@@ -58,9 +67,18 @@ public class RotateGrindingWheel : MonoBehaviour
         }
     }
 
-    private IEnumerator PolishItemAfterDelay(ItemComponent item, float delay)
+    private IEnumerator PolishItemAfterDelay(ItemComponent item, int delay)
     {
-        yield return new WaitForSeconds(delay); // delay 만큼 대기
+        sparkMaterial = sparkEffect.GetComponent<ParticleSystemRenderer>().material;
+        Color EmissionColor;
+        for(int i = 0; i < delay; i++) // 매초 파티클 색상 변경 및 출력
+        {
+            EmissionColor = new Color((float)(i) / (delay - 1), 0.2f, (float)(delay - i - 1) / (delay - 1)) * 5f;
+            sparkMaterial.SetColor("_EmissionColor", EmissionColor);
+            sparkEffect.Stop();
+            sparkEffect.Play();
+            yield return new WaitForSeconds(1f);
+        }
 
         // 연마 상태 설정
         if (!item.isPolished)
@@ -70,8 +88,30 @@ public class RotateGrindingWheel : MonoBehaviour
             item.defPower *= 1.1f;
             item.sellPrice += 5;
             Debug.Log($"연마 완료: {item.itemName}, 공격력: {item.atkPower}");
-            sparkEffect.Play();
         }
+
+        for(int i = 0; i < 10; i++) // 과열
+        {
+            EmissionColor = new Color(1f, 1f, 1f) * 10f;
+            sparkMaterial.SetColor("_EmissionColor", EmissionColor);
+            sparkEffect.Stop();
+            sparkEffect.Play();
+            yield return new WaitForSeconds(0.5f);
+        }
+        
+        for(int i = 0; i < 5; i++) // 파손
+        {
+            EmissionColor = new Color(0.5f, 0.5f, 0.5f);
+            sparkMaterial.SetColor("_EmissionColor", EmissionColor);
+            sparkEffect.Stop();
+            sparkEffect.Play();
+            yield return new WaitForSeconds(1f);
+        }
+        item.isPolished = false;
+        item.atkPower *= 0.8f;
+        item.defPower *= 0.8f;
+        item.sellPrice -= 6;
+        Debug.Log($"과도한 연마로 장비가 손상되었습니다");
 
         polishingCoroutine = null; // 코루틴 참조 초기화
     }

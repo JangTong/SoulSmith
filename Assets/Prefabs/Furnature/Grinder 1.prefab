@@ -125,6 +125,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sparkEffect: {fileID: 8049522924926011242}
   rotationSpeed: 100
+  minTime: 10
+  maxTime: 20
 --- !u!54 &2517921689573521987
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -282,7 +284,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3a637106755995646937219de07bf7f9, type: 2}
+  - {fileID: 2100000, guid: 6184b28d06109bd4b8e2fc1334bddd91, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1660,7 +1662,7 @@ ParticleSystem:
         m_RotationOrder: 4
     separateAxes: 0
   ColorModule:
-    enabled: 1
+    enabled: 0
     gradient:
       serializedVersion: 2
       minMaxState: 3

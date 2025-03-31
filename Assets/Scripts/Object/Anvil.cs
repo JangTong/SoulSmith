@@ -19,7 +19,7 @@ public class Anvil : MonoBehaviour
     {
         itemComponent = other.GetComponent<ItemComponent>();
 
-        if (!ItemPickup.Instance.isSwinging && !ItemPickup.Instance.isEquipped &&
+        if (ItemPickup.Instance.currentState == ItemPickupState.Idle &&
             objectOnAnvil == null && itemComponent != null &&
             itemComponent.itemType == ItemType.Resource && itemComponent.materialType == MaterialType.Metal)
         {

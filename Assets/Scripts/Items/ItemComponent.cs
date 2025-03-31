@@ -143,11 +143,25 @@ public enum MaterialType { None, Wood, Metal, Leather, Cloth, Fuel }
 // 기타 속성 클래스
 [System.Serializable]
 public class ElementalMana
-{
+{    
     public int fire;
     public int water;
     public int earth;
     public int air;
+
+    public ElementalMana() { }
+    public ElementalMana(ElementalMana source)
+    {
+        fire = source.fire;
+        water = source.water;
+        earth = source.earth;
+        air = source.air;
+    }
+
+    public int Total()
+    {
+        return fire + water + earth + air;
+    }
 }
 
 [System.Serializable]

@@ -27,7 +27,7 @@ public class WeaponColliderHandler : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // 감지가 가능한 상태에서만 Trigger 처리
-        if (canDetect && parentWeaponBase != null && other.name == "HammerHead" && ItemPickup.Instance.isSwinging)
+        if (canDetect && parentWeaponBase != null && other.name == "HammerHead" && ItemPickup.Instance.currentState == ItemPickupState.Swinging)
         {
             parentWeaponBase.IncrementCollisionCount(colliderName);
 

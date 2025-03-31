@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3622260799845168808
 Transform:
   m_ObjectHideFlags: 0
@@ -155,7 +155,7 @@ Transform:
   m_GameObject: {fileID: 5996986532060807119}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.05, y: 1.087, z: -0.055}
+  m_LocalPosition: {x: -0.896, y: 1.087, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -180,8 +180,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.97590184, y: 0.13599777, z: 2.2598567}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.97590184, y: 0.32341027, z: 2.2598567}
+  m_Center: {x: 0, y: 0.09370625, z: 0}
 --- !u!114 &7492000090259134428
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,8 +195,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   snapPoint: {fileID: 6629538488185190520}
-  tableCamera: {fileID: 6136483801662982950}
-  moveSpeed: 0.1
+  cameraCraftingViewPoint: {fileID: 3622260799845168808}
+  cameraMoveDuration: 1
+  moveSpeed: 1
+  currentBlade: {fileID: 0}
+  currentPart: {fileID: 0}
 --- !u!1 &8203063705271924768
 GameObject:
   m_ObjectHideFlags: 0
@@ -332,7 +335,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 2.0319066, y: 1.1543251, z: 3.1230457}
-  m_Center: {x: -0.5155915, y: 0.45898384, z: -0.051242422}
+  m_Center: {x: 0, y: 0.45898384, z: 0}
 --- !u!1 &9110138037664353195
 GameObject:
   m_ObjectHideFlags: 0

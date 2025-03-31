@@ -9,7 +9,7 @@ public class HammerHead : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (ItemPickup.Instance.isSwinging && other.gameObject.CompareTag("Items") && !isPlayingSound)
+        if (ItemPickup.Instance.currentState == ItemPickupState.Swinging && other.gameObject.CompareTag("Items") && !isPlayingSound)
         {
             StartCoroutine(PlaySoundWithDelay());
         }

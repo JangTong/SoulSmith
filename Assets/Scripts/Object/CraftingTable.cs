@@ -1,11 +1,15 @@
 using UnityEngine;
+using DG.Tweening;
 
 public class CraftingTable : MonoBehaviour
 {
     [Header("References")]
     public Transform snapPoint;
-    public Camera tableCamera;
     private Camera mainCamera;
+
+    [Header("Camera Positions")]
+    public Transform cameraCraftingViewPoint;
+    public float cameraMoveDuration = 0.5f;
 
     [Header("Settings")]
     public float moveSpeed;
@@ -20,12 +24,21 @@ public class CraftingTable : MonoBehaviour
         {
             Debug.LogError("❌ Main Camera를 찾을 수 없습니다. 'MainCamera' 태그를 확인하세요.");
         }
+    }
 
-        tableCamera.enabled = false;
-        if (mainCamera != null)
+    private void SwitchToTableCamera()
+    {
+        if (cameraCraftingViewPoint == null)
         {
-            mainCamera.enabled = true;
+            Debug.LogError("카메라 작업대 위치가 설정되지 않았습니다!");
+            return;
         }
+        PlayerController.Instance.MoveCameraToWorld(cameraCraftingViewPoint, cameraMoveDuration); // 카메라 이동
+    }
+
+    private void SwitchToMainCamera()
+    {
+        PlayerController.Instance.ResetCameraToLocalDefault(cameraMoveDuration); // 로컬 기준 복귀
     }
 
     private void OnTriggerEnter(Collider other)
@@ -112,7 +125,6 @@ public class CraftingTable : MonoBehaviour
         }
         else return;
 
-        PlayerController.Instance.ToggleUI(true);
         SwitchToTableCamera();
     }
 
@@ -182,30 +194,6 @@ public class CraftingTable : MonoBehaviour
         currentPart = null;
         isEditing = false;
 
-        PlayerController.Instance.ToggleUI(false);
         SwitchToMainCamera();
-    }
-
-    private void SwitchToTableCamera()
-    {
-        if (mainCamera != null)
-        {
-            mainCamera.enabled = false;
-        }
-        tableCamera.enabled = true;
-        ItemPickup.Instance.canPickUp = false;
-    }
-
-    private void SwitchToMainCamera()
-    {
-        if (mainCamera == null)
-        {
-            Debug.LogError("❌ Main Camera가 NULL입니다! 'MainCamera' 태그를 확인하세요.");
-            return;
-        }
-
-        tableCamera.enabled = false;
-        mainCamera.enabled = true;
-        ItemPickup.Instance.canPickUp = true;
     }
 }

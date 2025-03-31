@@ -172,7 +172,7 @@ public class Forge : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Items 태그를 가진 오브젝트가 Trigger에 들어왔을 때 처리
-        if (other.CompareTag("Items") && !ItemPickup.Instance.isEquipped && !ItemPickup.Instance.isSwinging)
+        if (other.CompareTag("Items") && ItemPickup.Instance.currentState == ItemPickupState.Idle)
         {
             // 배열에 추가
             if (!storedItems.Contains(other.gameObject))

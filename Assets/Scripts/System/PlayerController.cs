@@ -1,4 +1,5 @@
 using UnityEngine;
+using DG.Tweening;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,6 +13,10 @@ public class PlayerController : MonoBehaviour
     private CharacterController characterController;
     private Vector3 velocity;               // 속도 벡터
     private bool isGrounded;                // 지면에 닿아있는지 확인
+
+
+    private Vector3 camLocalDefaultPos;
+    private Quaternion camLocalDefaultRot;
     private Transform cameraTransform;      // 카메라 Transform
     private float xRotation = 0f;           // 상하 회전 각도
 
@@ -31,6 +36,10 @@ public class PlayerController : MonoBehaviour
 
         characterController = GetComponent<CharacterController>();
         cameraTransform = Camera.main.transform;
+
+        // 카메라 로컬 기준 위치 백업
+        camLocalDefaultPos = cameraTransform.localPosition;
+        camLocalDefaultRot = cameraTransform.localRotation;
 
         // 커서 숨기기 및 잠금
         Cursor.lockState = CursorLockMode.Locked;
@@ -116,5 +125,29 @@ public class PlayerController : MonoBehaviour
         // 중력 적용
         velocity.y += gravity * Time.deltaTime;
         characterController.Move(velocity * Time.deltaTime);
+    }
+
+    public void MoveCameraToWorld(Transform worldTarget, float duration = 0.5f)
+    {
+        PlayerController.Instance.ToggleUI(true); // 조작 차단
+
+        camLocalDefaultRot = cameraTransform.localRotation;
+        cameraTransform.DOMove(worldTarget.position, duration).SetEase(Ease.InOutSine);
+        cameraTransform.DORotateQuaternion(worldTarget.rotation, duration).SetEase(Ease.InOutSine);
+    }
+
+    public void ResetCameraToLocalDefault(float duration = 0.5f)
+    {
+        Sequence seq = DOTween.Sequence();
+
+        seq.Append(cameraTransform.DOLocalMove(camLocalDefaultPos, duration).SetEase(Ease.InOutSine));
+        seq.Join(cameraTransform.DOLocalRotateQuaternion(camLocalDefaultRot, duration).SetEase(Ease.InOutSine));
+
+        // 이동 완료 후 UI 조작 가능하도록 전환
+        seq.OnComplete(() =>
+        {
+            ToggleUI(false);
+        });
+        Debug.Log("카메라 리셋");
     }
 }

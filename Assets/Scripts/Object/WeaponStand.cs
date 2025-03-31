@@ -8,7 +8,7 @@ public class WeaponStand : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         ItemComponent item = other.GetComponent<ItemComponent>();
-        if (item != null && item.weaponType != WeaponType.None) // 무기인지 확인
+        if (item != null && item.weaponType != WeaponType.None && item.partsType == PartsType.Blade) // 무기인지 확인
         {
             Debug.Log("🔍 무기 감지: " + other.gameObject.name);
             AddWeapon(other.gameObject);

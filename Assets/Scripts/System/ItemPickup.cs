@@ -231,7 +231,17 @@ public class ItemPickup : MonoBehaviour
         swingSequence.Join(pickedItem.transform.DOLocalMove(middlePosition, 0.33f).SetEase(Ease.InOutQuad));
 
         swingSequence.Append(pickedItem.transform.DOLocalRotate(endRotation, 0.07f).SetEase(Ease.OutCubic));
-        swingSequence.Join(pickedItem.transform.DOLocalMove(endPosition, 0.07f).SetEase(Ease.OutCubic));
+        swingSequence.Join(pickedItem.transform.DOLocalMove(endPosition, 0.07f).SetEase(Ease.OutCubic));    
+                // 🔥 이 타이밍에서 도구의 Use() 실행 (PickaxeTool 등)
+        swingSequence.AppendCallback(() =>
+        {
+            Tool tool = pickedItem.GetComponent<Tool>();
+            if (tool != null)
+            {
+                tool.Use();
+            }
+        });
+
 
         swingSequence.Append(pickedItem.transform.DOLocalRotate(startRotation, 0.2f).SetEase(Ease.InCubic));
         swingSequence.Join(pickedItem.transform.DOLocalMove(originalPosition, 0.2f).SetEase(Ease.InCubic));

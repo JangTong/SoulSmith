@@ -71,13 +71,13 @@ public class RotateGrindingWheel : MonoBehaviour
     {
         sparkMaterial = sparkEffect.GetComponent<ParticleSystemRenderer>().material;
         Color EmissionColor;
-        for(int i = 0; i < delay; i++) // 매초 파티클 색상 변경 및 출력
+        for(int i = 0; i < delay * 10; i++) // 매초 파티클 색상 변경 및 출력
         {
-            EmissionColor = new Color((float)(i) / (delay - 1), 0.2f, (float)(delay - i - 1) / (delay - 1)) * 5f;
+            EmissionColor = new Color((i / (float)(delay * 10)), 0.2f, 1 - (i / (float)(delay * 10))) * 5f;
             sparkMaterial.SetColor("_EmissionColor", EmissionColor);
-            sparkEffect.Stop();
             sparkEffect.Play();
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.1f);
+            Debug.Log($"EmissionColor: {EmissionColor}");
         }
 
         // 연마 상태 설정

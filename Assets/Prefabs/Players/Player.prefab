@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 140775502421687262}
   - component: {fileID: 8694681466571074887}
   - component: {fileID: 1937805833867380138}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -177,7 +177,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3391f4e0c5395004598986dbcafac5f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  moveSpeed: 7
   lookSpeed: 2
   jumpForce: 1
   gravity: -9.81
@@ -197,10 +197,8 @@ MonoBehaviour:
   itemNameText: {fileID: 0}
   pickedItem: {fileID: 0}
   rotationSpeed: 100
-  pickupDistance: 4
-  canPickUp: 1
-  isEquipped: 0
-  isSwinging: 0
+  pickupDistance: 5
+  currentState: 0
 --- !u!1 &2770044851560145537
 GameObject:
   m_ObjectHideFlags: 0
@@ -229,7 +227,7 @@ Transform:
   m_GameObject: {fileID: 2770044851560145537}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.66, z: 0}
+  m_LocalPosition: {x: 0, y: 1.06, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

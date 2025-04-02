@@ -1,73 +1,68 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class CollisionData
-{
-    public string colliderName; // Collider 이름
-    public int collisionCount;  // 충돌 횟수
-}
-
 public class WeaponBase : MonoBehaviour
 {
-    [SerializeField]
-    public List<CollisionData> collisionDataList = new List<CollisionData>(); // 충돌 데이터 리스트
+    public bool isOnAnvil = false;
 
-    private void Start()
+    [System.Serializable]
+    public class WeaponCollisionData
     {
-        // 자식 Collider 오브젝트 초기화
-        InitializeChildColliders();
+        public string partName;
+        public int collisionCount;
     }
 
-    /// 자식 Collider 오브젝트 초기화
-    private void InitializeChildColliders()
-    {
-        foreach (Transform child in transform)
-        {
-            Collider collider = child.GetComponent<Collider>();
+    public List<WeaponCollisionData> collisionDataList = new List<WeaponCollisionData>();
 
-            if (collider != null)
+    void Awake()
+    {
+        InitializeCollisionParts();
+    }
+
+    private void InitializeCollisionParts()
+    {
+        collisionDataList.Clear();
+
+        // 자식 오브젝트 중 WeaponColliderHandler가 붙은 것들을 모두 검색
+        WeaponColliderHandler[] parts = GetComponentsInChildren<WeaponColliderHandler>();
+
+        foreach (var part in parts)
+        {
+            WeaponCollisionData data = new WeaponCollisionData
             {
-                // 충돌 데이터 초기화
-                collisionDataList.Add(new CollisionData
+                partName = part.gameObject.name,
+                collisionCount = 0
+            };
+
+            collisionDataList.Add(data);
+        }
+    }
+
+    public int IncrementCollisionCount(string partName)
+    {
+        if (!isOnAnvil) return 0;
+
+        foreach (var data in collisionDataList)
+        {
+            if (data.partName == partName)
+            {
+                data.collisionCount++;
+
+                // 해당 파츠 찾기
+                Transform partTransform = transform.Find(partName);
+                if (partTransform != null)
                 {
-                    colliderName = child.name,
-                    collisionCount = 0
-                });
+                    WeaponColliderHandler handler = partTransform.GetComponent<WeaponColliderHandler>();
+                    if (handler != null)
+                    {
+                        handler.SetEmissionLevel(data.collisionCount);
+                    }
+                }
 
-                // Trigger 설정
-                collider.isTrigger = true;
-
-                // WeaponColliderHandler 추가 및 초기화
-                WeaponColliderHandler handler = child.gameObject.AddComponent<WeaponColliderHandler>();
-                handler.Initialize(this, child.name);
-            }
-            else
-            {
-                Debug.LogWarning($"{child.name}에 Collider가 없습니다.");
+                return data.collisionCount;
             }
         }
-    }
 
-    /// 특정 자식 Collider의 충돌 카운트를 증가
-    public void IncrementCollisionCount(string colliderName)
-    {
-        var collisionData = collisionDataList.Find(data => data.colliderName == colliderName);
-        if (collisionData != null)
-        {
-            collisionData.collisionCount++;
-            Debug.Log($"충돌 감지: {colliderName}, 현재 충돌 횟수: {collisionData.collisionCount}");
-        }
-        else
-        {
-            Debug.LogWarning($"Collider 이름 '{colliderName}'를 찾을 수 없습니다.");
-        }
-    }
-
-    /// 특정 Collider의 충돌 횟수 가져오기
-    public int GetCollisionCount(string colliderName)
-    {
-        var collisionData = collisionDataList.Find(data => data.colliderName == colliderName);
-        return collisionData != null ? collisionData.collisionCount : 0;
+        return 0;
     }
 }

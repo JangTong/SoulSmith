@@ -35,7 +35,13 @@ public class Anvil : MonoBehaviour
             other.transform.localPosition = Vector3.zero;
 
             Debug.Log($"{other.name}이(가) Anvil에 고정되었습니다.");
-            WeaponColliderHandler.canDetect = true;
+
+            // ✅ WeaponBase에 상태 전달
+            WeaponBase weaponBase = objectOnAnvil.GetComponent<WeaponBase>();
+            if (weaponBase != null)
+            {
+                weaponBase.isOnAnvil = true;
+            }
         }
     }
 
@@ -43,9 +49,15 @@ public class Anvil : MonoBehaviour
     {
         if (objectOnAnvil == other.gameObject)
         {
+            // ✅ WeaponBase에 상태 전달 해제
+            WeaponBase weaponBase = objectOnAnvil.GetComponent<WeaponBase>();
+            if (weaponBase != null)
+            {
+                weaponBase.isOnAnvil = false;
+            }
+
             objectOnAnvil = null;
             Debug.Log($"{other.name}이(가) Anvil에서 제거되었습니다.");
-            WeaponColliderHandler.canDetect = false;
         }
     }
 

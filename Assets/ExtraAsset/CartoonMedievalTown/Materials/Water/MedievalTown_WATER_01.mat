@@ -64,11 +64,11 @@ Material:
     - Depth: 0
     - Displacement: 0.2
     - FlareDensity: 625
-    - FlarePower: 20
+    - FlarePower: 27.3
     - FlareSpeed: 1
-    - FoamAmount: 0.1
+    - FoamAmount: 0.943
     - FoamCut: 2
-    - FoamPosition: 5
+    - FoamPosition: 4.7
     - FoamScale: 750
     - FoamSpeed: 100
     - NormalSpeed: 0.05
@@ -100,7 +100,7 @@ Material:
     - Color_44E23EC9: {r: 0.9622641, g: 0.9932726, b: 1, a: 0.8666667}
     - DeepColor: {r: 0.22067462, g: 0.43654606, b: 0.5377358, a: 0.9411765}
     - DeepFoamColor: {r: 0.6226415, g: 0.2995728, b: 0.2995728, a: 0.92941177}
-    - FlareColor: {r: 0.41568628, g: 0.41568628, b: 0.41568628, a: 1}
+    - FlareColor: {r: 0.5038874, g: 0.66096765, b: 0.6830188, a: 1}
     - FoamColor: {r: 1, g: 1, b: 1, a: 0.9019608}
     - ShallowColor: {r: 0.24670699, g: 0.6744155, b: 0.6792453, a: 0.7254902}
   m_BuildTextureStacks: []

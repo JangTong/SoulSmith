@@ -39,7 +39,7 @@ MonoBehaviour:
     defaultState: 1
   tonemapper:
     overrideState: 1
-    value: 2
+    value: 1
   toneCurveToeStrength:
     overrideState: 1
     value: 0
@@ -67,7 +67,7 @@ MonoBehaviour:
     value: 1
   temperature:
     overrideState: 1
-    value: -80
+    value: -42
   tint:
     overrideState: 1
     value: 92
@@ -123,7 +123,7 @@ MonoBehaviour:
     overrideState: 1
     value: {x: 1, y: 1, z: 1, w: 0}
   gain:
-    overrideState: 1
+    overrideState: 0
     value: {x: 1, y: 1, z: 1, w: 0}
   masterCurve:
     overrideState: 1

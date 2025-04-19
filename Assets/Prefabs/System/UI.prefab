@@ -944,7 +944,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f4b6c2fd5b03b1047ae3c5494868b66a, type: 2}
+  - {fileID: 2100000, guid: bd1a20422ba47434c9652dbc0ccbeeae, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1337,7 +1337,7 @@ GameObject:
   - component: {fileID: 5818455721839380302}
   - component: {fileID: 7957341730324905748}
   m_Layer: 5
-  m_Name: ' TimerText'
+  m_Name: TimerText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1547,7 +1547,7 @@ GameObject:
   - component: {fileID: 1257464548218439175}
   - component: {fileID: 1136565796223293562}
   m_Layer: 5
-  m_Name: ' DayText'
+  m_Name: DayText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

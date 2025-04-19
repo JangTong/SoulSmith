@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class Anvil : MonoBehaviour
 {
@@ -32,7 +33,7 @@ public class Anvil : MonoBehaviour
             }
 
             other.transform.SetParent(fixedPosition);
-            other.transform.localPosition = Vector3.zero;
+            other.transform.DOLocalMove(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
 
             Debug.Log($"{other.name}이(가) Anvil에 고정되었습니다.");
 
@@ -77,12 +78,12 @@ public class Anvil : MonoBehaviour
         // 무기 종류 판별 및 생성
         if (ChechCollisionData(2, 2, 2, 2, 2)) // Sword
         {
-            string weaponName = (itemComponent.weight >= 2) ? "TwoHandedSword" : "One_Handed_Sword_Blade";
+            string weaponName = (itemComponent.weight >= 2) ? "One_Handed_Sword_Blade" : "One_Handed_Sword_Blade";
             CreateWeaponInstance(weaponName, 0.8f, 1.2f, 0.8f, 30, 2.2f);
         }
         else if (ChechCollisionData(1, 1, 1, 1, 3)) // Axe
         {
-            string weaponName = (itemComponent.weight >= 2) ? "TwoHandedAxe" : "Axe_Blade";
+            string weaponName = (itemComponent.weight >= 2) ? "Axe_Blade" : "Axe_Blade";
             CreateWeaponInstance(weaponName, 0.8f, 1.3f, 0.6f, 30, 1.9f);
         }
         else if (ChechCollisionData(2, 2, 2, 2, 0)) // Shield
@@ -114,19 +115,22 @@ public class Anvil : MonoBehaviour
         if (newItemComponent != null)
         {
             newItemComponent.itemName = weaponName;
-            newItemComponent.weight = itemComponent.weight * weightFactor;
-            newItemComponent.atkPower = itemComponent.atkPower * atkFactor;
-            newItemComponent.defPower = itemComponent.defPower * defFactor;
+            newItemComponent.itemColor = itemComponent.itemColor;
+
+            // ✅ 스탯 전이
+            newItemComponent.AddStatsFrom(itemComponent);
+
+            // ✅ 가중치 적용
+            newItemComponent.weight *= weightFactor;
+            newItemComponent.atkPower *= atkFactor;
+            newItemComponent.defPower *= defFactor;
+
             newItemComponent.sellPrice = itemComponent.sellPrice + basePrice + (int)(newItemComponent.atkPower * priceMultiplier);
             newItemComponent.buyPrice = newItemComponent.sellPrice * 2;
-
-            // 기존 오브젝트 색상을 적용
-            newItemComponent.itemColor = itemComponent.itemColor;
 
             Debug.Log($"새로운 무기 생성: {newWeapon.name} - 공격력: {newItemComponent.atkPower}, 방어력: {newItemComponent.defPower}, 색상: {newItemComponent.itemColor}");
         }
 
-        // 머테리얼 색상 적용
         ApplyMaterialColor(newWeapon, newItemComponent.itemColor);
 
         Destroy(objectOnAnvil);

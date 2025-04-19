@@ -85,44 +85,60 @@ public class CraftingTable : MonoBehaviour
             currentBlade = null;
         }
 
-        if (currentBlade == null && item.partsType == PartsType.Blade && item.canCombine)
-        {
-            currentBlade = item;
-            currentBlade.transform.SetParent(snapPoint);
-            currentBlade.transform.localRotation = Quaternion.identity;
-            currentBlade.transform.localPosition = Vector3.zero;
+if (currentBlade == null && item.partsType == PartsType.Blade && item.canCombine)
+{
+    currentBlade = item;
 
-            if (!currentBlade.TryGetComponent<Rigidbody>(out Rigidbody bladeRb))
-            {
-                bladeRb = currentBlade.gameObject.AddComponent<Rigidbody>();
-                bladeRb.mass = 5f;
-                bladeRb.interpolation = RigidbodyInterpolation.Interpolate;
-                bladeRb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-            }
-            bladeRb.isKinematic = true;
-            currentPart = null;
-            isEditing = true;
-        }
-        else if (currentBlade != null && item.partsType != PartsType.None && item.weaponType == currentBlade.weaponType && item.canCombine)
-        {
-            currentPart = item;
-            currentPart.transform.SetParent(currentBlade.transform, true);
-            currentPart.transform.localPosition = new Vector3(currentPart.transform.localPosition.x, 0, currentPart.transform.localPosition.z);
-            currentPart.transform.localRotation = Quaternion.identity;
+    currentBlade.transform.SetParent(snapPoint, worldPositionStays: true); // 💡 위치 보존
 
-            if (currentPart.partsType != PartsType.Blade && currentPart.TryGetComponent<Rigidbody>(out Rigidbody partRb))
-            {
-                partRb.isKinematic = true;
-            }
+    currentBlade.transform
+        .DOLocalMove(Vector3.zero, 0.2f)
+        .SetEase(Ease.OutSine);
+    currentBlade.transform
+        .DOLocalRotate(Vector3.zero, 0.2f)
+        .SetEase(Ease.OutSine);
 
-            Collider partCollider = currentPart.GetComponent<Collider>();
-            Collider bladeCollider = currentBlade.GetComponent<Collider>();
-            if (partCollider != null && bladeCollider != null)
-            {
-                Physics.IgnoreCollision(partCollider, bladeCollider, true);
-            }
-            isEditing = true;
-        }
+    // Rigidbody 설정은 그대로
+    if (!currentBlade.TryGetComponent<Rigidbody>(out Rigidbody bladeRb))
+    {
+        bladeRb = currentBlade.gameObject.AddComponent<Rigidbody>();
+        bladeRb.mass = 5f;
+        bladeRb.interpolation = RigidbodyInterpolation.Interpolate;
+        bladeRb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+    }
+    bladeRb.isKinematic = true;
+
+    currentPart = null;
+    isEditing = true;
+}
+else if (currentBlade != null && item.partsType != PartsType.None && item.weaponType == currentBlade.weaponType && item.canCombine)
+{
+    currentPart = item;
+
+    currentPart.transform.SetParent(currentBlade.transform, worldPositionStays: true); // 💡 위치 보존
+
+    Vector3 targetLocalPosition = new Vector3(currentPart.transform.localPosition.x, 0, currentPart.transform.localPosition.z);
+    currentPart.transform
+        .DOLocalMove(targetLocalPosition, 0.2f)
+        .SetEase(Ease.OutSine);
+    currentPart.transform
+        .DOLocalRotate(Vector3.zero, 0.2f)
+        .SetEase(Ease.OutSine);
+
+    if (currentPart.partsType != PartsType.Blade && currentPart.TryGetComponent<Rigidbody>(out Rigidbody partRb))
+    {
+        partRb.isKinematic = true;
+    }
+
+    Collider partCollider = currentPart.GetComponent<Collider>();
+    Collider bladeCollider = currentBlade.GetComponent<Collider>();
+    if (partCollider != null && bladeCollider != null)
+    {
+        Physics.IgnoreCollision(partCollider, bladeCollider, true);
+    }
+
+    isEditing = true;
+}
         else return;
 
         SwitchToTableCamera();

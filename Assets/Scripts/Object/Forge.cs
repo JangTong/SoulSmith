@@ -61,7 +61,7 @@ public class Forge : MonoBehaviour
         }
 
         // Metal:Fuel 비율이 1:1이 아닌 경우 작동하지 않음
-        if (metalCount != fuelCount && metalCount > 0 && fuelCount > 0)
+        if (metalCount != fuelCount)
         {
             Debug.LogWarning($"Forging 실패: Metal과 Fuel의 비율이 1:1이 아닙니다. (Metal: {metalCount}, Fuel: {fuelCount})");
             yield break;
@@ -120,7 +120,7 @@ public class Forge : MonoBehaviour
         }
         storedItems.Clear();
 
-        Debug.Log("아이템을 처리 중입니다... 3초 후 새로운 아이템이 생성됩니다.");
+        Debug.Log($"아이템을 처리 중입니다... 3초 후 새로운 아이템이 생성됩니다. (Metal: {metalCount}, Fuel: {fuelCount})");
         yield return new WaitForSeconds(3f); // 3초 딜레이
 
         // Prefab에서 새로운 아이템 생성

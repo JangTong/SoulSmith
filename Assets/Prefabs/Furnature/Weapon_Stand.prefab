@@ -44,8 +44,8 @@ GameObject:
   - component: {fileID: 2210706833442419147}
   - component: {fileID: 2687563124012054258}
   - component: {fileID: 7565197603775958174}
-  - component: {fileID: 3501805035496379175}
   - component: {fileID: 9024443847161880538}
+  - component: {fileID: 3501805035496379175}
   m_Layer: 2
   m_Name: Weapon_Stand
   m_TagString: Untagged
@@ -171,23 +171,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -1550514412580984892, guid: 61aff43a54ec5b844b042e8bddaea0d3, type: 3}
---- !u!114 &3501805035496379175
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4810118475607038908}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6472d698d466461429a4465587ed6b6b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  weaponSlots:
-  - {fileID: 5755196145580758033}
-  - {fileID: 5825608850942809908}
-  - {fileID: 6763636018610427751}
-  - {fileID: 349536313561896575}
 --- !u!65 &9024443847161880538
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -209,6 +192,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.1872797, y: 0.6054535, z: 2.5129974}
   m_Center: {x: 0, y: 0.3735113, z: 0.027162194}
+--- !u!114 &3501805035496379175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4810118475607038908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6472d698d466461429a4465587ed6b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weaponSlots:
+  - {fileID: 5755196145580758033}
+  - {fileID: 5825608850942809908}
+  - {fileID: 6763636018610427751}
+  - {fileID: 349536313561896575}
 --- !u!1 &5886851132542941647
 GameObject:
   m_ObjectHideFlags: 0

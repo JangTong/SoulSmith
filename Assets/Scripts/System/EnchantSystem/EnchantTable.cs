@@ -1,4 +1,5 @@
 using UnityEngine;
+using DG.Tweening;
 
 public class EnchantTable : MonoBehaviour
 {
@@ -55,8 +56,9 @@ public class EnchantTable : MonoBehaviour
         if (rb != null) rb.isKinematic = true;
 
         other.transform.SetParent(fixedPosition);
-        other.transform.localPosition = Vector3.zero;
-        other.transform.localRotation = Quaternion.identity;
+    // 부드러운 이동 & 회전 (0.3초)
+        other.transform.DOLocalMove(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
+        other.transform.DOLocalRotate(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
 
         OpenEnchantUI();
     }

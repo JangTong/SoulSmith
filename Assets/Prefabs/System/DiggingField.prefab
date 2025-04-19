@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5365839280678188210}
   - component: {fileID: 6775101543127603348}
   - component: {fileID: 7747913167790254239}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: DiggingField
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -28,13 +28,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6643132167013495253}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.998542, z: -0, w: 0.053980444}
+  m_LocalRotation: {x: 0, y: -0.9985419, z: 0, w: 0.053982995}
   m_LocalPosition: {x: 60.78, y: -4.36, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -173.811, z: 0}
 --- !u!33 &4468363381059505950
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7e9546f8f24ba03469c701855901500b, type: 2}
+  - {fileID: 5003808447191746841, guid: e2603dad1f5569e4bbecfa073ad80462, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -120,9 +120,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   width: 40
-  height: 30
-  resolution: 0.1
+  height: 10
+  resolution: 1
   noiseScale: 0.01
-  heightTresshold: 0.93
-  visualizeNoise: 0
+  surfaceLevel: 0
   use3DNoise: 0
+  visualizeNoise: 0
+  sealEdges: 1
+  smoothEdgeFalloff: 0
+  edgeFalloff: 5

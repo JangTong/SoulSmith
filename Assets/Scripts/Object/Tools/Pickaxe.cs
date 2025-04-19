@@ -13,8 +13,14 @@ public class Pickaxe : Tool
         float range = ItemPickup.Instance.pickupDistance;
 
         Ray ray = new Ray(camera.position, camera.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, range, terrainLayer))
+        RaycastHit[] hits = Physics.RaycastAll(ray, range, terrainLayer);
+
+        foreach (RaycastHit hit in hits)
         {
+            // 자기 자신 또는 자식 객체 무시
+            if (hit.collider.transform.IsChildOf(transform))
+                continue;
+
             Debug.Log("⛏️ 곡괭이 사용: " + hit.collider.name);
 
             TerrainChunk chunk = hit.collider.GetComponent<TerrainChunk>();
@@ -27,13 +33,14 @@ public class Pickaxe : Tool
                 Debug.LogWarning("⛏️ TerrainChunk가 아닌 오브젝트입니다: " + hit.collider.name);
             }
 
-            // 이펙트 재생
             if (digEffect != null)
             {
                 digEffect.transform.position = hit.point;
                 digEffect.transform.rotation = Quaternion.LookRotation(hit.normal);
                 digEffect.Play();
             }
+
+            break; // 첫 번째 유효한 충돌만 처리
         }
     }
 }

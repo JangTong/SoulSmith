@@ -12,7 +12,7 @@ public class EnchantMapUI : MonoBehaviour
     public float tileSize;
     public GameObject currentItem;
     public TextMeshProUGUI feedbackText;
-
+    public ParticleSystem sparkEffect;
     private EnchantComponent enchant;
 
     private void OnEnable()
@@ -74,6 +74,7 @@ public class EnchantMapUI : MonoBehaviour
         {
             enchant.appliedSpells.Add(spell);
             enchant.ApplyElementalEffects(currentItem.transform); // 바로 이펙트 적용!
+            sparkEffect.Play();
             ShowFeedback($"마법 '{spell.name}' 부여 완료");
             Debug.Log("마법 부여 완료");
         }

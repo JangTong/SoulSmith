@@ -12,6 +12,7 @@ public class ItemPickup : MonoBehaviour
     public Transform playerCamera;
     public TextMeshProUGUI itemNameText;
     public GameObject pickedItem = null;
+    public GameObject pickedItemLeft = null;
     public float rotationSpeed = 100f;
     public float pickupDistance = 4f;
 
@@ -43,6 +44,11 @@ public class ItemPickup : MonoBehaviour
 
     private void HandleInput()
     {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            ToggleLeftEquip();
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             if (pickedItem == null && currentState == ItemPickupState.Idle)
@@ -136,7 +142,6 @@ public class ItemPickup : MonoBehaviour
             Debug.Log("상호작용 가능한 오브젝트가 범위 내에 없습니다.");
         }
     }
-
     private void PickupItem()
     {
         Ray ray = new Ray(playerCamera.position, playerCamera.forward);
@@ -144,8 +149,10 @@ public class ItemPickup : MonoBehaviour
         {
             pickedItem = hit.transform.gameObject;
             pickedItem.transform.SetParent(playerCamera);
-            pickedItem.transform.localPosition = new Vector3(0, 0, 1f);
-            pickedItem.transform.localRotation = Quaternion.identity;
+
+            // 트윈으로 부드럽게 이동/회전
+            pickedItem.transform.DOLocalMove(new Vector3(0, 0, 1f), 0.3f).SetEase(Ease.OutBack);
+            pickedItem.transform.DOLocalRotate(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
 
             if (pickedItem.TryGetComponent<Rigidbody>(out Rigidbody rb))
             {
@@ -179,14 +186,22 @@ public class ItemPickup : MonoBehaviour
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
         if (scrollInput != 0)
         {
-            pickedItem.transform.Rotate(Vector3.up, scrollInput * rotationSpeed, Space.Self);
+            Vector3 currentEuler = pickedItem.transform.rotation.eulerAngles;
+            float targetY = currentEuler.y + scrollInput * rotationSpeed;
+
+            pickedItem.transform
+                .DORotate(new Vector3(0, targetY, 0), 0.05f, RotateMode.Fast)
+                .SetEase(Ease.OutSine);
         }
     }
 
     private void LockItemRotation()
     {
-        Vector3 eulerAngles = pickedItem.transform.rotation.eulerAngles;
-        pickedItem.transform.rotation = Quaternion.Euler(0, eulerAngles.y, 0);
+        float currentY = pickedItem.transform.rotation.eulerAngles.y;
+
+        pickedItem.transform
+            .DORotate(new Vector3(0, currentY, 0), 0.15f, RotateMode.Fast)
+            .SetEase(Ease.OutQuad);
     }
 
     private void ToggleEquip()
@@ -206,6 +221,46 @@ public class ItemPickup : MonoBehaviour
             pickedItem.transform.DOLocalRotate(new Vector3(-45, 0, 90), 0.2f);
             currentState = ItemPickupState.Equipped;
             Debug.Log("🗡️ 아이템 장착됨");
+        }
+    }
+
+    private void ToggleLeftEquip()
+    {
+        if (pickedItemLeft == null)
+        {
+            // 들기
+            Ray ray = new Ray(playerCamera.position, playerCamera.forward);
+            if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance) && hit.transform.CompareTag("Items"))
+            {
+                GameObject target = hit.transform.gameObject;
+
+                if (target == pickedItem) return;
+
+                pickedItemLeft = target;
+                pickedItemLeft.transform.SetParent(playerCamera);
+                pickedItemLeft.transform.DOLocalMove(new Vector3(-0.5f, -0.5f, 0.5f), 0.3f).SetEase(Ease.InOutQuad);
+                pickedItemLeft.transform.DOLocalRotate(new Vector3(-45, 0, -90), 0.3f);
+
+                if (pickedItemLeft.TryGetComponent<Rigidbody>(out Rigidbody rb))
+                    rb.isKinematic = true;
+
+                Debug.Log("🪔 왼손 아이템 장착됨");
+            }
+        }
+        else
+        {
+            // 떨어뜨리기 애니메이션 → 완료 후 드롭
+            pickedItemLeft.transform.DOLocalMove(new Vector3(0, 0, 1f), 0.3f).SetEase(Ease.InOutQuad)
+                .OnComplete(() =>
+                {
+                    pickedItemLeft.transform.SetParent(null);
+
+                    if (pickedItemLeft.TryGetComponent<Rigidbody>(out Rigidbody rb))
+                        rb.isKinematic = false;
+
+                    Debug.Log("🪔 왼손 아이템 드롭 완료");
+                    pickedItemLeft = null;
+                });
         }
     }
 

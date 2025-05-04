@@ -135,7 +135,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7178286, z: 0, w: 0.69621986}
   m_LocalPosition: {x: 8.16, y: 0, z: -3.99}
-  m_LocalScale: {x: 1.5, y: 1, z: 1.5}
+  m_LocalScale: {x: 1.5000001, y: 1, z: 1.5000001}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5053899077004084633}
@@ -211,25 +211,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fixedPosition: {fileID: 2127035716878733731}
-  objectOnAnvil: {fileID: 0}
-  weaponList:
-  - {fileID: 7873991153927492797, guid: d5c217a0aa1d11240a32b86dd624bb35, type: 3}
-  - {fileID: 4257757638088447847, guid: 10532195d41b652458ba59c39bb7e0df, type: 3}
-  - {fileID: 8840621535558751130, guid: 3de6e8936c106c842935a7d012b03857, type: 3}
-  - {fileID: 3320249924084302484, guid: d23e996d49e7bd24abbb1ab6eae73558, type: 3}
-  - {fileID: 5254318303791532102, guid: 2d28c3b399dfad14b9ec8629fbbb661b, type: 3}
-  - {fileID: 9059592510555030617, guid: ace2aaac1c7b39e4fbacc9cda21051be, type: 3}
-  - {fileID: 4160323219513035307, guid: d93095db9231c4841b0cef187ef28355, type: 3}
-  - {fileID: 1406837600682077523, guid: 62708f41044eda14cbbc5d5a68cdc874, type: 3}
-  - {fileID: 3850223252734473238, guid: 1fe0d432bae41884c8a4822554eb633b, type: 3}
-  - {fileID: 938452129999634907, guid: ea118e356e7fb204abf6cc426d99d1a1, type: 3}
-  - {fileID: 3845667575671812984, guid: d0d2cde63a584d14a933452f630bce9c, type: 3}
-  - {fileID: 4011853101262894429, guid: 9be4faf3aff9b1749ba17791d531b872, type: 3}
-  - {fileID: 3767267088122965815, guid: 5c22c2b43b882c44b87104f8ea190584, type: 3}
-  - {fileID: 2043016117327300245, guid: 975737b225b759c4aacac342659f128e, type: 3}
-  - {fileID: 6587766166616628844, guid: 918e754fb6679bb4ca4893432726ffe0, type: 3}
-  itemComponent: {fileID: 0}
-  weaponBase: {fileID: 0}
+  recipes: []
+  recipeLabel: WeaponRecipe
   sparkEffect: {fileID: 1552059359279625176}
 --- !u!1 &4942292203563651038
 GameObject:

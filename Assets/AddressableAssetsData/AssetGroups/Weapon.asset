@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Weapon
+  m_EditorClassIdentifier: 
+  m_GroupName: Weapon
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 1cf06b4a07ebc924ca53f5169981fca9
+  m_SerializeEntries:
+  - m_GUID: 0225a88984b5436469466a0888f2aaec
+    m_Address: Assets/Addressables/WeaponRecipe/Axe_Blade.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WeaponRecipe
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 460ade6bbe854954498c3f25f88e6647
+    m_Address: Assets/Addressables/WeaponRecipe/One_Handed_Sword_Blade.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WeaponRecipe
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 94a76c8087889524492ced0f725086e9
+    m_Address: Assets/Addressables/WeaponRecipe
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WeaponRecipe
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 21485ce96ed070d46a2b2ef946a27933, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 832a71d171ad1fe498f5560247853a69, type: 2}
+    - {fileID: 11400000, guid: e83fc9f4762663946af7c3567b5acec5, type: 2}

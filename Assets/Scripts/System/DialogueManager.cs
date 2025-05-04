@@ -1,9 +1,10 @@
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
+using UnityEngine.Events;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using System.Threading.Tasks;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class DialogueManager : MonoBehaviour
     public TextMeshProUGUI dialogueText;     // 대사를 표시할 텍스트
     public GameObject dialoguePanel;        // 대화창 패널
     public Button nextButton;               // "다음" 버튼
+    public Button sellButton;
 
     public DialogueData currentDialogue;   // 현재 대화 데이터
     private int currentIndex = 0;           // 현재 대사 인덱스
@@ -37,13 +39,13 @@ public class DialogueManager : MonoBehaviour
         CloseDialogue(); // 초기에는 대화창을 비활성화
     }
 
-    public void LoadAndStartDialogue(string dialogueName)
+    public async void LoadAndStartDialogue(string dialogueName)
     {
-        currentDialogue = LoadDialogueByName(dialogueName);
-
-        if (currentDialogue != null)
+        var dialogueData = await LoadDialogueByNameAsync(dialogueName);
+        if (dialogueData != null)
         {
-            Debug.Log($"'{dialogueName}' 대화 데이터 로드 성공");
+            currentDialogue = dialogueData;
+            Debug.Log($"'{dialogueName}' 대화 데이터 로드 성공 (Addressables)"); // 기존 코드와 동일한 로그
             StartDialogue();
         }
         else
@@ -60,6 +62,7 @@ public class DialogueManager : MonoBehaviour
             Debug.Log($"대화 시작: 총 {currentDialogue.dialogues.Length}개의 대화");
             currentIndex = 0; // 대화 인덱스 초기화
             dialoguePanel.SetActive(true); // 대화창 활성화
+            sellButton.gameObject.SetActive(false);
             ShowDialogue(); // 첫 번째 대사 표시
 
             PlayerController.Instance.ToggleUI(true);
@@ -116,5 +119,44 @@ public class DialogueManager : MonoBehaviour
         }
 
         return dialogueData;
+    }
+
+    public void ShowTradeDialogue(string requestText, UnityAction onSell)
+    {
+        dialogueText.text = requestText;
+        dialoguePanel.SetActive(true);    
+        PlayerController.Instance.ToggleUI(true);
+        GameManager.Instance.ToggleTime(true);
+
+        // Next 버튼은 그냥 닫기
+        nextButton.onClick.RemoveAllListeners();
+        nextButton.onClick.AddListener(CloseDialogue);
+
+        // Sell 버튼은 판매 로직 호출
+        sellButton.gameObject.SetActive(true);
+        sellButton.onClick.RemoveAllListeners();
+        sellButton.onClick.AddListener(() =>
+        {
+            onSell.Invoke();
+        });
+    }
+
+    private async Task<DialogueData> LoadDialogueByNameAsync(string fileName)
+    {
+        string key = $"DialogueData/{fileName}";
+        var handle = Addressables.LoadAssetAsync<DialogueData>(key);
+        
+        // Addressables의 Task 프로퍼티를 await
+        await handle.Task;
+        
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            return handle.Result;
+        }
+        else
+        {
+            Debug.LogWarning($"'{fileName}' 키로 DialogueData 로드 실패 (Addressables Key: {key})");
+            return null;
+        }
     }
 }

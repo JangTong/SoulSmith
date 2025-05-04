@@ -1,46 +1,84 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-// MonoBehaviour 기반의 아이템 컴포넌트
 [DisallowMultipleComponent]
 public class ItemComponent : MonoBehaviour
 {
     [Header("Basic Information")]
-    public string itemName = "New Item";       // 아이템 이름
-    [TextArea] public string description;     // 아이템 설명
+    public string itemName = "New Item";
+    [TextArea] public string description;
 
     [Header("Visual Properties")]
-    public Color itemColor = Color.white;     // 아이템 색상
+    public Color itemColor = Color.white;
 
     [Header("Item Attributes")]
-    public Rarity itemRarity = Rarity.None;   // 희귀도
-    public ItemType itemType = ItemType.None; // 아이템 타입
-    public WeaponType weaponType = WeaponType.None; // 무기 타입
-    public PartsType  partsType = PartsType.None;
-    public ArmorType armorType = ArmorType.None;     // 방어구 타입
-    public MaterialType materialType = MaterialType.None; // 소재 타입
+    public Rarity itemRarity = Rarity.None;
+    public ItemType itemType = ItemType.None;
+    public WeaponType weaponType = WeaponType.None;
+    public PartsType partsType = PartsType.None;
+    public ArmorType armorType = ArmorType.None;
+    public MaterialType materialType = MaterialType.None;
 
     [Header("Physical Attributes")]
-    public float weight = 1f;                // 무게
+    public float weight = 1f;
     public float atkPower;
     public float defPower;
     public bool isPolished = false;
 
     [Header("Elemental Attributes")]
-    public ElementalMana elementalMana;                // 원소 마나
-    public ElementalResistance elementalResistance;    // 원소 저항
-    public ElementalAffinity elementalAffinity;        // 원소 친화도
+    public ElementalMana elementalMana;
+    public ElementalResistance elementalResistance;
+    public ElementalAffinity elementalAffinity;
 
     [Header("Special Attributes")]
-    public SpecialAttributes specialAttributes;        // 특수 속성
+    public SpecialAttributes specialAttributes;
 
     [Header("Price and Trade")]
-    public int buyPrice;                     // 구매 가격
-    public int sellPrice;                    // 판매 가격
+    public int buyPrice;
+    public int sellPrice;
 
     [Header("System Flags")]
-    public bool canCombine = true;  
+    public bool canCombine = true;
 
-    /// 아이템 초기화 메서드 (외부에서 데이터 적용 가능)
+    [Header("Crafting Information")]
+    public List<MaterialEntry> materialsUsed = new List<MaterialEntry>();
+
+    [System.Serializable]
+    public class MaterialEntry
+    {
+        public string name;
+        public Rarity rarity;
+        public ItemType type;
+        public WeaponType weaponType;
+        public MaterialType materialType;
+        public float weight;
+        public Color color;
+
+        public MaterialEntry(ItemComponent source)
+        {
+            name = source.itemName;
+            rarity = source.itemRarity;
+            type = source.itemType;
+            weaponType = source.weaponType;
+            materialType = source.materialType;
+            weight = source.weight;
+            color = source.itemColor;
+        }
+    }
+
+    public void AddMaterial(ItemComponent material)
+    {
+        materialsUsed.Add(new MaterialEntry(material));
+    }
+
+    public void AddMaterialsFrom(ItemComponent other)
+    {
+        foreach (var entry in other.materialsUsed)
+        {
+            materialsUsed.Add(entry);
+        }
+    }
+
     public void Initialize(
         string itemName,
         string description,
@@ -82,10 +120,9 @@ public class ItemComponent : MonoBehaviour
 
     public override string ToString()
     {
-        return $"{itemName} (Rarity: {itemRarity}, Type: {itemType}, Weight: {weight}, Value: {buyPrice}/{sellPrice}";
+        return $"{itemName} (Rarity: {itemRarity}, Type: {itemType}, Weight: {weight}, Value: {buyPrice}/{sellPrice})";
     }
 
-    // 다른 ItemComponent의 스탯을 이 객체에 더함
     public void AddStatsFrom(ItemComponent other)
     {
         atkPower += other.atkPower;
@@ -106,9 +143,11 @@ public class ItemComponent : MonoBehaviour
         elementalAffinity.waterAffinity += other.elementalAffinity.waterAffinity;
         elementalAffinity.earthAffinity += other.elementalAffinity.earthAffinity;
         elementalAffinity.airAffinity += other.elementalAffinity.airAffinity;
+
+        buyPrice += other.buyPrice;
+        sellPrice += other.sellPrice;
     }
 
-    // 다른 ItemComponent의 스탯을 이 객체에서 뺌
     public void SubtractStatsFrom(ItemComponent other)
     {
         atkPower -= other.atkPower;
@@ -130,7 +169,7 @@ public class ItemComponent : MonoBehaviour
         elementalAffinity.earthAffinity -= other.elementalAffinity.earthAffinity;
         elementalAffinity.airAffinity -= other.elementalAffinity.airAffinity;
     }
-    }
+}
 
 // 속성 관련 열거형 (기본 값 설정)
 public enum Rarity { None, Common, Uncommon, Rare, Epic, Legendary }

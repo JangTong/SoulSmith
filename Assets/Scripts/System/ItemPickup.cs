@@ -126,10 +126,10 @@ public class ItemPickup : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance))
         {
-            InteractiveObject interactiveObject = hit.collider.GetComponent<InteractiveObject>();
-            if (interactiveObject != null)
+            IInteractable IInteractable = hit.collider.GetComponent<IInteractable>();
+            if (IInteractable != null)
             {
-                interactiveObject.Interaction();
+                IInteractable.Interact();
                 Debug.Log($"상호작용: {hit.collider.name}");
             }
             else

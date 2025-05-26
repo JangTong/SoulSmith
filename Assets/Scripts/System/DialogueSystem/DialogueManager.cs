@@ -148,56 +148,23 @@ public class DialogueManager : MonoBehaviour
         onDialogueComplete = null;
     }
 
-
     private void ShowCurrentLine()
     {
         var line = currentDialogue.lines[currentIndex];
-        dialogueText.text    = line.text;
+        dialogueText.text = line.text;
         speakerNameText.text = line.speaker ?? string.Empty;
         portraitImage.gameObject.SetActive(line.portrait != null);
-        if (line.portrait != null) portraitImage.sprite = line.portrait;
+        if (line.portrait != null)
+            portraitImage.sprite = line.portrait;
 
         bool isLast = currentIndex == currentDialogue.lines.Count - 1;
         sellButton.gameObject.SetActive(isTradeMode && isLast);
 
-        // — 여기서 eventToTrigger 실행
+        // GameEventAsset 실행 위임 (fallback 포함)
         if (line.eventToTrigger != null)
-            ExecuteGameEvent(line.eventToTrigger);
-    }
-
-    /// <summary>
-    /// GameEventAsset을 즉시 실행하는 헬퍼
-    /// </summary>
-    private void ExecuteGameEvent(GameEventAsset evt)
-    {
-        // 1) 재실행 불가 & 이미 완료된 이벤트라면 무시
-        if (!evt.repeatable && GameEventProgress.Instance.IsCompleted(evt.eventId))
-            return;
-
-        // 2) 선행 이벤트 체크
-        foreach (var reqId in evt.requiredPreviousEvents)
-            if (!GameEventProgress.Instance.IsCompleted(reqId))
-                return;
-
-        // 3) 조건 검사
-        bool allMet = evt.conditions
-            .OfType<IEventCondition>()
-            .All(cond => cond.IsMet());
-
-        // 4) 액션 실행 (성공 or fallback)
-        var listToExecute = allMet
-            ? evt.actions
-            : evt.fallbackActions;
-        if (listToExecute != null)
         {
-            foreach (var obj in listToExecute)
-                if (obj is IEventAction action)
-                    action.Execute();
+            EventService.Instance.Execute(line.eventToTrigger);
         }
-
-        // 5) 이벤트 완료 기록
-        if (!GameEventProgress.Instance.IsCompleted(evt.eventId))
-            GameEventProgress.Instance.MarkComplete(evt.eventId);
     }
 
     private void ToggleGameUI(bool enable)

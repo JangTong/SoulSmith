@@ -1,7 +1,7 @@
 using UnityEngine;
 using DG.Tweening;
 
-public class Door : InteractiveObject
+public class Door : MonoBehaviour, IInteractable
 {
     public Transform doorHinge; // 문이 회전할 기준
     public float openAngle = 90f; // 열리는 각도
@@ -19,7 +19,7 @@ public class Door : InteractiveObject
         openRotation = closedRotation * Quaternion.Euler(0, openAngle, 0);
     }
 
-    public override void Interaction()
+    public void Interact()
     {
         isOpen = !isOpen;
 

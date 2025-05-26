@@ -11,49 +11,18 @@ public class EventTrigger : MonoBehaviour
         if (triggered && !eventData.repeatable) return;
         if (!other.CompareTag("Player")) return;
 
-        // ✅ 선행 이벤트 조건 미달이면 아예 무시
-        if (!ArePrerequisitesMet()) return;
-
-        if (AreConditionsMet())
+        // 선행 이벤트 체크
+        foreach (string req in eventData.requiredPreviousEvents)
         {
-            ExecuteActions(eventData.actions);
-            triggered = true;
-        }
-        else if (eventData.fallbackActions != null && eventData.fallbackActions.Count > 0)
-        {
-            ExecuteActions(eventData.fallbackActions);
-        }
-    }
-
-    private bool ArePrerequisitesMet()
-    {
-        foreach (string requiredEventId in eventData.requiredPreviousEvents)
-        {
-            if (!GameEventProgress.Instance.IsCompleted(requiredEventId))
+            if (!GameEventProgress.Instance.IsCompleted(req))
             {
-                Debug.Log($"[EventTrigger] '{eventData.eventId}' 실행 차단: 선행 이벤트 '{requiredEventId}' 미완료");
-                return false;
+                Debug.Log($"[EventTrigger] '{eventData.eventId}' blocked: prerequisite '{req}' not completed");
+                return;
             }
         }
-        return true;
-    }
 
-    private bool AreConditionsMet()
-    {
-        foreach (var cond in eventData.conditions)
-        {
-            if (cond is IEventCondition c && !c.IsMet())
-                return false;
-        }
-        return true;
-    }
-
-    private void ExecuteActions(List<ScriptableObject> actionList)
-    {
-        foreach (var act in actionList)
-        {
-            if (act is IEventAction a)
-                a.Execute();
-        }
+        // 단일 Execute 호출로 내부에서 fallback 포함 처리
+        EventService.Instance.Execute(eventData);
+        triggered = true;
     }
 }

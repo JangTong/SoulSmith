@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Customer : InteractiveObject
+public class Customer : MonoBehaviour, IInteractable
 {
     [Header("Request Data")]
     public CustomerRequestSO request;
@@ -8,7 +8,7 @@ public class Customer : InteractiveObject
     public TradeZone tradeZone;  // 자신이 속한 거래 구역
 
     // InteractiveObject 인터페이스
-    override public void Interaction()
+    public void Interact()
     {
         if (tradeZone != null)
             tradeZone.OpenDialogue();

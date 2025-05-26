@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Bellows : InteractiveObject
+public class Bellows : MonoBehaviour, IInteractable
 {
     private Forge forge; // 부모 오브젝트에 연결된 Forge 스크립트 참조
 
@@ -15,7 +15,7 @@ public class Bellows : InteractiveObject
         }
     }
 
-    public override void Interaction()
+    public void Interact()
     {
         if (forge != null)
         {

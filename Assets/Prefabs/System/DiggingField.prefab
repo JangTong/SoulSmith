@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6775101543127603348}
   - component: {fileID: 7747913167790254239}
   m_Layer: 7
-  m_Name: DiggingField
+  m_Name: Diggingfield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -119,13 +119,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2551408fadf5b1c4494b922e098ab358, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 40
-  height: 10
+  width: 64
+  height: 32
   resolution: 1
   noiseScale: 0.01
   surfaceLevel: 0
+  groundThreshold: -20
+  sealEdges: 0
+  useNoise: 1
   use3DNoise: 0
   visualizeNoise: 0
-  sealEdges: 1
-  smoothEdgeFalloff: 0
-  edgeFalloff: 5
+  chunkCoord: {x: 0, y: 0, z: 0}

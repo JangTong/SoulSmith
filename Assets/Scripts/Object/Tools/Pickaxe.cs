@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Pickaxe : Tool
 {
@@ -13,34 +14,34 @@ public class Pickaxe : Tool
         float range = ItemPickup.Instance.pickupDistance;
 
         Ray ray = new Ray(camera.position, camera.forward);
-        RaycastHit[] hits = Physics.RaycastAll(ray, range, terrainLayer);
-
-        foreach (RaycastHit hit in hits)
+        if (Physics.Raycast(ray, out RaycastHit hit, range, terrainLayer))
         {
-            // 자기 자신 또는 자식 객체 무시
-            if (hit.collider.transform.IsChildOf(transform))
-                continue;
-
             Debug.Log("⛏️ 곡괭이 사용: " + hit.collider.name);
 
-            TerrainChunk chunk = hit.collider.GetComponent<TerrainChunk>();
-            if (chunk != null)
+            Vector3 digPoint = hit.point;
+
+            // ✅ 구형 범위 내 TerrainChunk 수집
+            Collider[] colliders = Physics.OverlapSphere(digPoint, digRadius, terrainLayer);
+            List<TerrainChunk> affectedChunks = new();
+
+            foreach (var col in colliders)
             {
-                chunk.DigAtWorldPosition(hit.point, digRadius, digStrength);
-            }
-            else
-            {
-                Debug.LogWarning("⛏️ TerrainChunk가 아닌 오브젝트입니다: " + hit.collider.name);
+                TerrainChunk chunk = col.GetComponent<TerrainChunk>();
+                if (chunk != null && !affectedChunks.Contains(chunk)) // 중복 제거
+                {
+                    affectedChunks.Add(chunk);
+                    chunk.DigAtWorldPosition(digPoint, digRadius, digStrength);
+                }
             }
 
+            // 파티클 재생
             if (digEffect != null)
             {
                 digEffect.transform.position = hit.point;
                 digEffect.transform.rotation = Quaternion.LookRotation(hit.normal);
                 digEffect.Play();
             }
-
-            break; // 첫 번째 유효한 충돌만 처리
         }
-    }
+}
+
 }

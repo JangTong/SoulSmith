@@ -136,17 +136,31 @@ public class PlayerController : MonoBehaviour
         cameraTransform.DORotateQuaternion(worldTarget.rotation, duration).SetEase(Ease.InOutSine);
     }
 
-    public void ResetCameraToLocalDefault(float duration = 0.5f)
+    public void MoveCameraToWorld(Vector3 worldPosition, Quaternion worldRotation, float duration = 0.5f)
+    {
+        // UI 차단
+        ToggleUI(true);
+
+        // 로컬 기본 위치/회전 백업
+        //camLocalDefaultPos = cameraTransform.localPosition;
+        //camLocalDefaultRot = cameraTransform.localRotation;
+
+        // DOTween으로 이동 & 회전
+        cameraTransform.DOMove(worldPosition, duration).SetEase(Ease.InOutSine);
+        cameraTransform.DORotateQuaternion(worldRotation, duration).SetEase(Ease.InOutSine);
+    }
+
+    public void ResetCameraToLocalDefault(float duration = 0.5f, bool isToggleUI = false)
     {
         Sequence seq = DOTween.Sequence();
 
         seq.Append(cameraTransform.DOLocalMove(camLocalDefaultPos, duration).SetEase(Ease.InOutSine));
-        seq.Join(cameraTransform.DOLocalRotateQuaternion(camLocalDefaultRot, duration).SetEase(Ease.InOutSine));
+        //seq.Join(cameraTransform.DOLocalRotateQuaternion(camLocalDefaultRot, duration).SetEase(Ease.InOutSine));
 
         // 이동 완료 후 UI 조작 가능하도록 전환
         seq.OnComplete(() =>
         {
-            ToggleUI(false);
+            ToggleUI(isToggleUI);
         });
         Debug.Log("카메라 리셋");
     }

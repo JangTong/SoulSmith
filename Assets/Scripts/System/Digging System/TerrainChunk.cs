@@ -1,6 +1,8 @@
+// TerrainChunk.cs
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static FastNoiseLite;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 public class TerrainChunk : MonoBehaviour
@@ -10,11 +12,13 @@ public class TerrainChunk : MonoBehaviour
     [SerializeField] private float resolution = 1f;
     [SerializeField] private float noiseScale = 1f;
     [SerializeField] private float surfaceLevel = 0f;
+    [SerializeField] private float groundThreshold = 10f;
+    [SerializeField] private bool sealEdges = false;
+    [SerializeField] private bool useNoise = true;
     [SerializeField] private bool use3DNoise = false;
     [SerializeField] private bool visualizeNoise = false;
-    [SerializeField] private bool sealEdges = false;
-    [SerializeField] private bool smoothEdgeFalloff = false;
-    [SerializeField] private float edgeFalloff = 5f;
+
+    public Vector3Int chunkCoord;
 
     private float[,,] heights;
     private List<Vector3> vertices = new();
@@ -22,18 +26,20 @@ public class TerrainChunk : MonoBehaviour
 
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
+    private FastNoiseLite noise;
 
     void Start()
     {
         meshFilter = GetComponent<MeshFilter>();
         meshCollider = GetComponent<MeshCollider>();
 
+        noise = new FastNoiseLite();
+        noise.SetSeed(1337);
+        noise.SetFrequency(noiseScale);
+        noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+
         GenerateDensityField();
         GenerateMesh();
-    }
-
-    void Update()
-    {
     }
 
     void GenerateDensityField()
@@ -44,38 +50,31 @@ public class TerrainChunk : MonoBehaviour
         for (int y = 0; y <= height; y++)
         for (int z = 0; z <= width; z++)
         {
-            float worldX = x * resolution;
-            float worldY = y * resolution;
-            float worldZ = z * resolution;
-
-            bool isEdge = x == 0 || x == width || z == 0 || z == width || y == 0 || y == height;
-
-            if (sealEdges && isEdge)
-            {
-                heights[x, y, z] = 1f;
-                continue;
-            }
+            float worldX = (x + chunkCoord.x * width) * resolution;
+            float worldY = (y + chunkCoord.y * height) * resolution;
+            float worldZ = (z + chunkCoord.z * width) * resolution;
 
             float density;
 
-            if (use3DNoise)
+            if (!useNoise)
             {
-                float noise = PerlinNoise3D(worldX * noiseScale, worldY * noiseScale, worldZ * noiseScale);
-                density = noise - 0.5f;
+                density = worldY - height * resolution / 2f;
+            }
+            else if (worldY >= groundThreshold)
+            {
+                float heightValue = height * resolution * noise.GetNoise(worldX, worldZ);
+                density = worldY - heightValue;
             }
             else
             {
-                float heightValue = height * resolution * Mathf.PerlinNoise(worldX * noiseScale, worldZ * noiseScale);
-                density = worldY - heightValue;
+                float val = noise.GetNoise(worldX, worldY, worldZ);
+                density = val - 0.5f;
             }
 
-            if (sealEdges && smoothEdgeFalloff)
+            if (sealEdges && (x == 0 || x == width || y == 0 || y == height || z == 0 || z == width))
             {
-                float edgeWeightX = Mathf.Clamp01(Mathf.Min(x, width - x) / edgeFalloff);
-                float edgeWeightZ = Mathf.Clamp01(Mathf.Min(z, width - z) / edgeFalloff);
-                float edgeWeightY = Mathf.Clamp01(Mathf.Min(y, height - y) / edgeFalloff);
-                float edgeWeight = Mathf.Min(edgeWeightX, edgeWeightZ, edgeWeightY);
-                density = Mathf.Lerp(1f, density, edgeWeight);
+                heights[x, y, z] = 10f;
+                continue;
             }
 
             heights[x, y, z] = density;
@@ -151,17 +150,6 @@ public class TerrainChunk : MonoBehaviour
             Gizmos.color = new Color(d, d, d);
             Gizmos.DrawSphere(new Vector3(x, y, z) * resolution, 0.1f * resolution);
         }
-    }
-
-    float PerlinNoise3D(float x, float y, float z)
-    {
-        float xy = Mathf.PerlinNoise(x, y);
-        float xz = Mathf.PerlinNoise(x, z);
-        float yz = Mathf.PerlinNoise(y, z);
-        float yx = Mathf.PerlinNoise(y, x);
-        float zx = Mathf.PerlinNoise(z, x);
-        float zy = Mathf.PerlinNoise(z, y);
-        return (xy + xz + yz + yx + zx + zy) / 6f;
     }
 
     public void DigAtWorldPosition(Vector3 worldPos, float radius, float intensity)

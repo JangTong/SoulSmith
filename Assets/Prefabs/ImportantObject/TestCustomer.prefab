@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 2123114768153386901}
   - component: {fileID: 1786089180499266652}
   - component: {fileID: 3387804945125839719}
-  - component: {fileID: 2388789948368893593}
   - component: {fileID: 795951324539085102}
+  - component: {fileID: 2388789948368893593}
   m_Layer: 0
   m_Name: TestCustomer
   m_TagString: Untagged
@@ -109,20 +109,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2388789948368893593
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 688421884886323329}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83d4cb3e0554be046bddc290f67a74a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  request: {fileID: 11400000, guid: 3a8472dd01f2aaf479222680509987b5, type: 2}
-  tradeZone: {fileID: 0}
 --- !u!54 &795951324539085102
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -150,3 +136,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!114 &2388789948368893593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 688421884886323329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d4cb3e0554be046bddc290f67a74a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  request: {fileID: 11400000, guid: 3a8472dd01f2aaf479222680509987b5, type: 2}
+  tradeZone: {fileID: 0}

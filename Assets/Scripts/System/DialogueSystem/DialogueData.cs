@@ -40,10 +40,32 @@ public class DialogueData : ScriptableObject
                 Debug.LogWarning($"{name}: lines[{i}] 가 null 입니다. 자동 제거합니다.");
                 lines.RemoveAt(i);
             }
+            else if (string.IsNullOrWhiteSpace(line.speaker) && string.IsNullOrWhiteSpace(line.text))
+            {
+                Debug.LogWarning($"{name}: lines[{i}] 가 speaker/text 모두 비어있습니다. 자동 제거합니다.");
+                lines.RemoveAt(i);
+            }
             else if (string.IsNullOrEmpty(line.text))
             {
                 Debug.LogWarning($"{name}: lines[{i}].text 가 비어 있습니다.");
             }
         }
+    }
+
+    public void CleanupEmptyLines()
+    {
+        if (lines == null) return;
+
+        List<DialogueLine> cleaned = new List<DialogueLine>();
+        foreach (var line in lines)
+        {
+            if (!string.IsNullOrWhiteSpace(line.speaker) || !string.IsNullOrWhiteSpace(line.text))
+            {
+                cleaned.Add(line);
+            }
+        }
+
+        lines = cleaned;
+        Debug.Log($"[DialogueData] CleanupEmptyLines: {cleaned.Count} valid lines retained.");
     }
 }

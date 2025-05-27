@@ -1,4 +1,3 @@
-// 파일명: ItemInteractionController.cs
 using System;
 using UnityEngine;
 using DG.Tweening;
@@ -8,17 +7,20 @@ public class ItemInteractionController : MonoBehaviour
     public static ItemInteractionController Instance { get; private set; }
 
     [Header("References")]
-    public Transform playerCamera;               // 플레이어 시점 카메라
+    public Transform playerCamera;
 
     [Header("Settings")]
-    public float pickupDistance = 4f;            // 탐지 거리
-    public float rotationSpeed = 100f;           // 휠 회전 속도
+    public float pickupDistance = 4f;
+    public float rotationSpeed = 100f;
 
     public enum State { Idle, Holding, Equipped, Swinging }
     public State currentState = State.Idle;
 
     public enum Hand { Right, Left }
     public GameObject heldItemRight, heldItemLeft;
+
+    // 애니메이션 중 중복 입력 방지 플래그
+    private bool isAnimating = false;
 
     private void Awake()
     {
@@ -39,6 +41,8 @@ public class ItemInteractionController : MonoBehaviour
 
     public void OnPrimaryAction()
     {
+        if (isAnimating) return;
+
         if (heldItemRight == null && currentState == State.Idle)
             TryPrimaryPickup();
         else if (currentState == State.Equipped)
@@ -54,25 +58,27 @@ public class ItemInteractionController : MonoBehaviour
 
     public void OnSecondaryAction(Hand hand)
     {
+        if (isAnimating) return;
+
         if (hand == Hand.Left) ToggleLeftEquip();
         else ToggleRightEquip();
     }
 
     public void RotateHeldItem(float scrollDelta)
     {
-        if (currentState != State.Holding || heldItemRight == null || Mathf.Abs(scrollDelta) < 0.01f)
+        if (currentState != State.Holding || heldItemRight == null || Mathf.Abs(scrollDelta) < 0.01f || isAnimating)
             return;
 
-        float targetY = heldItemRight.transform.rotation.eulerAngles.y + scrollDelta * rotationSpeed;
-        heldItemRight.transform
-            .DORotate(new Vector3(0, targetY, 0), 0.05f).SetEase(Ease.OutSine);
+        var t = heldItemRight.transform;
+        if (DOTween.IsTweening(t)) DOTween.Kill(t);
 
-        LockHeldItemRotation();
+        float targetY = t.rotation.eulerAngles.y + scrollDelta * rotationSpeed;
+        t.DORotate(new Vector3(0, targetY, 0), 0.05f).SetEase(Ease.OutSine);
     }
 
     private void LateUpdate()
     {
-        if (currentState == State.Holding && heldItemRight != null)
+        if (currentState == State.Holding && heldItemRight != null && !isAnimating)
             LockHeldItemRotation();
     }
 
@@ -81,26 +87,29 @@ public class ItemInteractionController : MonoBehaviour
     private void TryPrimaryPickup()
     {
         Ray ray = new Ray(playerCamera.position, playerCamera.forward);
-        // 단일 Raycast: 맨 앞 콜라이더 하나만 검사
         if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance)
             && hit.transform.CompareTag("Items"))
         {
-            // hit.transform으로 부모 오브젝트(GameObject) 획득
             PickupItem(hit.transform.gameObject);
         }
     }
 
     private void PickupItem(GameObject item)
     {
+        if (DOTween.IsTweening(item.transform))
+            DOTween.Kill(item.transform);
+
         heldItemRight = item;
         item.transform.SetParent(playerCamera);
+
+        isAnimating = true;
+        var seq = DOTween.Sequence();
+        seq.Append(item.transform.DOLocalMove(new Vector3(0, 0, 1f), 0.3f).SetEase(Ease.OutBack));
+        seq.Join(item.transform.DOLocalRotate(Vector3.zero, 0.3f).SetEase(Ease.OutSine));
+        seq.OnComplete(() => { isAnimating = false; });
+
         if (item.TryGetComponent<Rigidbody>(out var rb))
             rb.isKinematic = true;
-
-        item.transform
-            .DOLocalMove(new Vector3(0, 0, 1f), 0.3f).SetEase(Ease.OutBack);
-        item.transform
-            .DOLocalRotate(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
 
         SetState(State.Holding);
         Debug.Log($"📦 Picked up: {item.name}");
@@ -110,6 +119,9 @@ public class ItemInteractionController : MonoBehaviour
     {
         var item = (hand == Hand.Left) ? heldItemLeft : heldItemRight;
         if (item == null) return;
+
+        if (DOTween.IsTweening(item.transform))
+            DOTween.Kill(item.transform);
 
         item.transform.SetParent(null);
         if (item.TryGetComponent<Rigidbody>(out var rb))
@@ -124,100 +136,129 @@ public class ItemInteractionController : MonoBehaviour
 
     private void ToggleRightEquip()
     {
-        if (heldItemRight == null)
-        {
-            Debug.Log("[Equip] No item in right hand");
-            return;
-        }
+        if (heldItemRight == null) return;
+
+        var t = heldItemRight.transform;
+        if (DOTween.IsTweening(t)) DOTween.Kill(t);
+
+        isAnimating = true;
+        var seq = DOTween.Sequence();
 
         var comp = heldItemRight.GetComponent<ItemComponent>();
-        var t = heldItemRight.transform;
         if (currentState == State.Equipped)
         {
-            t.DOLocalMove(new Vector3(0, 0, 1f), 0.2f).SetEase(Ease.InOutQuad);
-            t.localRotation = Quaternion.identity;
-            SetState(State.Holding);
-            Debug.Log("🗡️ Right hand unequipped");
+            seq.Append(t.DOLocalMove(new Vector3(0, 0, 1f), 0.2f).SetEase(Ease.InOutQuad));
+            seq.OnComplete(() =>
+            {
+                t.localRotation = Quaternion.identity;
+                SetState(State.Holding);
+                isAnimating = false;
+                Debug.Log("🗡️ Right hand unequipped");
+            });
         }
         else if (comp != null && comp.itemType == ItemType.Weapon)
         {
-            t.DOLocalMove(new Vector3(0.5f, -0.5f, 0.5f), 0.2f).SetEase(Ease.InOutQuad);
-            t.DOLocalRotate(new Vector3(-45, 0, 90), 0.2f).SetEase(Ease.InOutQuad);
-            SetState(State.Equipped);
-            Debug.Log("🗡️ Right hand equipped");
+            seq.Append(t.DOLocalMove(new Vector3(0.5f, -0.5f, 0.5f), 0.2f).SetEase(Ease.InOutQuad));
+            seq.Join(t.DOLocalRotate(new Vector3(-45, 0, 90), 0.2f).SetEase(Ease.InOutQuad));
+            seq.OnComplete(() =>
+            {
+                SetState(State.Equipped);
+                isAnimating = false;
+                Debug.Log("🗡️ Right hand equipped");
+            });
+        }
+        else
+        {
+            isAnimating = false;
         }
     }
 
     private void ToggleLeftEquip()
     {
+        // 왼손 장착: 모든 Items 태그 객체 허용
         if (heldItemLeft == null)
         {
             Ray ray = new Ray(playerCamera.position, playerCamera.forward);
-            if (Physics.Raycast(ray, out var hit, pickupDistance))
+            if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance)
+                && hit.transform.CompareTag("Items")
+                && !hit.transform.IsChildOf(playerCamera))
             {
-                var comp = hit.collider.GetComponentInParent<ItemComponent>();
-                if (comp == null) return;
-                if (comp.gameObject == heldItemRight) return;
-                if (!comp.CompareTag("Items")) return;
+                GameObject item = hit.transform.gameObject;
 
-                heldItemLeft = comp.gameObject;
+                heldItemLeft = item;
                 var t = heldItemLeft.transform;
+                if (DOTween.IsTweening(t)) DOTween.Kill(t);
+
                 t.SetParent(playerCamera);
-                t.DOLocalMove(new Vector3(-0.5f, -0.5f, 0.5f), 0.3f).SetEase(Ease.InOutQuad);
-                t.DOLocalRotate(new Vector3(-45, 0, -90), 0.3f).SetEase(Ease.InOutQuad);
-                if (heldItemLeft.TryGetComponent<Rigidbody>(out var rb))
-                    rb.isKinematic = true;
-                Debug.Log("🪔 Left hand item equipped");
+                isAnimating = true;
+                var seq = DOTween.Sequence();
+                seq.Append(t.DOLocalMove(new Vector3(-0.5f, -0.5f, 0.5f), 0.3f).SetEase(Ease.InOutQuad));
+                seq.Join(t.DOLocalRotate(new Vector3(-45, 0, -90), 0.3f).SetEase(Ease.InOutQuad));
+                seq.OnComplete(() =>
+                {
+                    if (heldItemLeft.TryGetComponent<Rigidbody>(out var rb)) rb.isKinematic = true;
+                    isAnimating = false;
+                    Debug.Log("🪔 Left hand item equipped");
+                });
             }
         }
         else
         {
             var t = heldItemLeft.transform;
-            t.DOLocalMove(new Vector3(0, 0, 1f), 0.3f).SetEase(Ease.InOutQuad)
-             .OnComplete(() =>
-             {
-                 t.SetParent(null);
-                 if (heldItemLeft.TryGetComponent<Rigidbody>(out var rb))
-                     rb.isKinematic = false;
-                 Debug.Log("🪔 Left hand item dropped");
-                 heldItemLeft = null;
-             });
+            if (DOTween.IsTweening(t)) DOTween.Kill(t);
+
+            isAnimating = true;
+            var seq = DOTween.Sequence();
+            seq.Append(t.DOLocalMove(new Vector3(0, 0, 1f), 0.3f).SetEase(Ease.InOutQuad));
+            seq.OnComplete(() =>
+            {
+                t.SetParent(null);
+                if (heldItemLeft.TryGetComponent<Rigidbody>(out var rb)) rb.isKinematic = false;
+                Debug.Log("🪔 Left hand item dropped");
+                heldItemLeft = null;
+                isAnimating = false;
+            });
         }
     }
 
     private void SwingItem()
     {
-        if (heldItemRight == null || currentState == State.Swinging) return;
+        if (isAnimating || heldItemRight == null || currentState == State.Swinging) return;
 
-        currentState = State.Swinging;
         var t = heldItemRight.transform;
-        Vector3 originalPosition = t.localPosition;
-        Quaternion originalRotation = t.localRotation;
+        if (DOTween.IsTweening(t)) DOTween.Kill(t);
 
-        Vector3 startRotation = new Vector3(-45, 0, 90);
-        Vector3 middleRotation = new Vector3(-100, 0, 90);
-        Vector3 endRotation = new Vector3(-20, 0, 90);
+        isAnimating = true;
+        currentState = State.Swinging;
 
-        Vector3 middlePosition = new Vector3(0.5f, 0.5f, 0.5f);
-        Vector3 endPosition = new Vector3(0, 0f, 1f);
+        Vector3 originalPos = t.localPosition;
+        Quaternion originalRot = t.localRotation;
 
-        Sequence swingSequence = DOTween.Sequence();
-        swingSequence.Append(t.DOLocalRotate(middleRotation, 0.33f).SetEase(Ease.InOutQuad));
-        swingSequence.Join(t.DOLocalMove(middlePosition, 0.33f).SetEase(Ease.InOutQuad));
-        swingSequence.Append(t.DOLocalRotate(endRotation, 0.07f).SetEase(Ease.OutCubic));
-        swingSequence.Join(t.DOLocalMove(endPosition, 0.07f).SetEase(Ease.OutCubic));
-        swingSequence.AppendCallback(() =>
+        Vector3 startRot = new Vector3(-45, 0, 90);
+        Vector3 midRot = new Vector3(-100, 0, 90);
+        Vector3 endRot = new Vector3(-20, 0, 90);
+
+        Vector3 midPos = new Vector3(0.5f, 0.5f, 0.5f);
+        Vector3 endPos = new Vector3(0, 0f, 1f);
+
+        var seq = DOTween.Sequence();
+        seq.Append(t.DOLocalRotate(midRot, 0.33f).SetEase(Ease.InOutQuad));
+        seq.Join(t.DOLocalMove(midPos, 0.33f).SetEase(Ease.InOutQuad));
+        seq.Append(t.DOLocalRotate(endRot, 0.07f).SetEase(Ease.OutCubic));
+        seq.Join(t.DOLocalMove(endPos, 0.07f).SetEase(Ease.OutCubic));
+        seq.AppendCallback(() =>
         {
             var tool = heldItemRight.GetComponent<Tool>();
-            if (tool != null) tool.Use();
+            tool?.Use();
         });
-        swingSequence.Append(t.DOLocalRotate(startRotation, 0.2f).SetEase(Ease.InCubic));
-        swingSequence.Join(t.DOLocalMove(originalPosition, 0.2f).SetEase(Ease.InCubic));
-        swingSequence.OnComplete(() =>
+        seq.Append(t.DOLocalRotate(startRot, 0.2f).SetEase(Ease.InCubic));
+        seq.Join(t.DOLocalMove(originalPos, 0.2f).SetEase(Ease.InCubic));
+        seq.OnComplete(() =>
         {
-            t.localPosition = originalPosition;
-            t.localRotation = originalRotation;
+            t.localPosition = originalPos;
+            t.localRotation = originalRot;
             SetState(State.Equipped);
+            isAnimating = false;
         });
     }
 
@@ -225,15 +266,14 @@ public class ItemInteractionController : MonoBehaviour
     {
         if (heldItemRight == null) return;
         var enchant = heldItemRight.GetComponent<EnchantComponent>();
-        if (enchant != null)
-        {
-            enchant.CastAllSpells(playerCamera);
-            Debug.Log("✨ CastAllSpells called");
-        }
+        enchant?.CastAllSpells(playerCamera);
+        Debug.Log("✨ CastAllSpells called");
     }
+
     #endregion
 
     #region Helpers
+
     private void LockHeldItemRotation()
     {
         if (heldItemRight == null) return;
@@ -246,5 +286,6 @@ public class ItemInteractionController : MonoBehaviour
         Debug.Log($"[State] {currentState} → {newState}");
         currentState = newState;
     }
+
     #endregion
 }

@@ -1,6 +1,5 @@
 // 파일명: ItemInteractionDetector.cs
 using UnityEngine;
-using TMPro;
 
 public class ItemInteractionDetector : MonoBehaviour
 {
@@ -8,9 +7,6 @@ public class ItemInteractionDetector : MonoBehaviour
 
     [Header("Settings")]
     public float detectDistance = 4f;
-
-    [Header("UI")]
-    public TextMeshProUGUI itemNameText;
 
     private Transform playerCamera;
 
@@ -42,12 +38,11 @@ public class ItemInteractionDetector : MonoBehaviour
             var comp = hit.transform.GetComponent<ItemComponent>();
             if (comp != null && !string.IsNullOrEmpty(comp.itemName))
             {
-                itemNameText.text = comp.itemName;
-                itemNameText.enabled = true;
+                UIManager.Instance.ShowItemName(comp.itemName);
                 return;
             }
         }
-        itemNameText.enabled = false;
+        UIManager.Instance.HideItemName();
     }
 
     public bool TryPerformRaycast(out RaycastHit hit)

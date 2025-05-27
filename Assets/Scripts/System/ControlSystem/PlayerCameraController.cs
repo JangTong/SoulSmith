@@ -39,7 +39,7 @@ public class PlayerCameraController : MonoBehaviour
     public void MoveTo(Transform target, float duration = 0.5f)
     {
         if (cameraTransform == null || target == null) return;
-        LockUI(true);
+        PlayerController.Instance.ToggleUI(true);
         KillTween();
         Debug.Log($"[Camera] MoveTo target:{target.name}, duration:{duration}");
         currentTween = DOTween.Sequence()
@@ -52,7 +52,7 @@ public class PlayerCameraController : MonoBehaviour
     public void MoveTo(Vector3 worldPosition, Quaternion worldRotation, float duration = 0.5f)
     {
         if (cameraTransform == null) return;
-        LockUI(true);
+        PlayerController.Instance.ToggleUI(true);
         KillTween();
         Debug.Log($"[Camera] MoveTo pos:{worldPosition}, rot:{worldRotation.eulerAngles}, duration:{duration}");
         currentTween = DOTween.Sequence()
@@ -65,7 +65,7 @@ public class PlayerCameraController : MonoBehaviour
     public void ResetToDefault(float duration = 0.5f, bool unlockUI = true)
     {
         if (cameraTransform == null || defaultAnchor == null) return;
-        LockUI(true);
+        PlayerController.Instance.ToggleUI(true);
         KillTween();
         Debug.Log($"[Camera] ResetToDefault duration:{duration}");
         currentTween = DOTween.Sequence()
@@ -77,7 +77,7 @@ public class PlayerCameraController : MonoBehaviour
                 float e = defaultAnchor.localRotation.eulerAngles.x;
                 float pitch = e > 180f ? e - 360f : e;
                 PlayerController.Instance?.SetCameraPitch(pitch);
-                if (unlockUI) LockUI(false);
+                if (unlockUI) PlayerController.Instance.ToggleUI(false);
             })
             .OnKill(() => currentTween = null);
     }
@@ -98,18 +98,9 @@ public class PlayerCameraController : MonoBehaviour
         Debug.Log($"[CameraController] ShakeCamera 호출 → duration: {duration}s, strength: {strength}");
     }
 
-    private void LockUI(bool active)
-    {
-        Cursor.lockState = active ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = active;
-        PlayerController.Instance?.ToggleUI(active);
-    }
-
     private void KillTween()
     {
         if (currentTween != null && currentTween.IsActive())
             currentTween.Kill();
-    }
-
-    
+    }   
 }

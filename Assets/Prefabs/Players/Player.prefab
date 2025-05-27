@@ -15,11 +15,11 @@ GameObject:
   - component: {fileID: 843487058873992115}
   - component: {fileID: 140775502421687262}
   - component: {fileID: 8694681466571074887}
-  - component: {fileID: 1937805833867380138}
   - component: {fileID: 2693204257733070229}
   - component: {fileID: 3517966859871001885}
   - component: {fileID: 9032416052680939307}
   - component: {fileID: 7585392134709546037}
+  - component: {fileID: 5567051841701819195}
   m_Layer: 2
   m_Name: Player
   m_TagString: Player
@@ -187,25 +187,6 @@ MonoBehaviour:
   lookSpeed: 80
   jumpForce: 1
   gravity: -9.81
---- !u!114 &1937805833867380138
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2415249452239346836}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 10c87d4c13651d34083e753da99b5649, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerCamera: {fileID: 304046193067704414}
-  itemNameText: {fileID: 0}
-  pickedItem: {fileID: 0}
-  pickedItemLeft: {fileID: 0}
-  rotationSpeed: 200
-  pickupDistance: 3
-  currentState: 0
 --- !u!114 &2693204257733070229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264,6 +245,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26acdc84f2796b1479cac3f64f6af8c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5567051841701819195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2415249452239346836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74f7017405477414ebda19aef61d2987, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationSpeed: 720
+  summonKey: 104
+  hammerPrefab: {fileID: 5528167789922007155, guid: 4fb76995d7ac3d44583c256513215a15,
+    type: 3}
+  spawnDistance: 10
+  flightDuration: 0.5
+  handLocalPos: {x: 0.5, y: -0.5, z: 0.5}
+  handLocalRot: {x: -45, y: 0, z: 90}
 --- !u!1 &2770044851560145537
 GameObject:
   m_ObjectHideFlags: 0
@@ -373,8 +374,7 @@ MonoBehaviour:
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
-  m_Cameras:
-  - {fileID: 0}
+  m_Cameras: []
   m_RendererIndex: -1
   m_VolumeLayerMask:
     serializedVersion: 2

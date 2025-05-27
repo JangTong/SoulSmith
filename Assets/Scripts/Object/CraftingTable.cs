@@ -33,30 +33,32 @@ public class CraftingTable : MonoBehaviour
             Debug.LogError("카메라 작업대 위치가 설정되지 않았습니다!");
             return;
         }
-        PlayerController.Instance.MoveCameraToWorld(cameraCraftingViewPoint, cameraMoveDuration); // 카메라 이동
+        PlayerController.Instance.cam.MoveTo(cameraCraftingViewPoint, cameraMoveDuration); // 카메라 이동
     }
 
     private void SwitchToMainCamera()
     {
-        PlayerController.Instance.ResetCameraToLocalDefault(cameraMoveDuration); // 로컬 기준 복귀
+        PlayerController.Instance.cam.ResetToDefault(cameraMoveDuration); // 로컬 기준 복귀
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        // 1) HammerHead 조합 로직은 건드리지 않고 바로 처리
         if (other.gameObject.name == "HammerHead")
         {
             CombineParts();
             return;
         }
 
-        ItemComponent item = other.GetComponent<ItemComponent>();
-        if (item == null || item.partsType == PartsType.None || item.canCombine == false) return;
-
-        if (ItemPickup.Instance != null && ItemPickup.Instance.pickedItem != null)
-        {
-            Debug.LogWarning("❌ 다른 아이템을 들고 있는 상태에서는 부품을 추가할 수 없습니다!");
+        // 2) 플레이어가 들고 있거나 장착한 아이템(UI/Detector에서 camera 자식으로 붙임)은 무시
+        var ctrl = ItemInteractionController.Instance;
+        if (ctrl != null && other.transform.IsChildOf(ctrl.playerCamera))
             return;
-        }
+
+        // 3) 나머지 아이템 인식 기존 로직
+        ItemComponent item = other.GetComponent<ItemComponent>();
+        if (item == null || item.partsType == PartsType.None || item.canCombine == false)
+            return;
 
         if (currentBlade == null && item.partsType != PartsType.Blade)
         {
@@ -66,7 +68,7 @@ public class CraftingTable : MonoBehaviour
 
         AttachItem(item);
     }
-
+    
     private void AttachItem(ItemComponent item)
     {
         bool hasBlade = false;

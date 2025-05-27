@@ -187,6 +187,7 @@ MonoBehaviour:
   buyPrice: 0
   sellPrice: 0
   canCombine: 1
+  materialsUsed: []
 --- !u!114 &3470083638915129123
 MonoBehaviour:
   m_ObjectHideFlags: 0

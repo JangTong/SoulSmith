@@ -28,11 +28,9 @@ public class EnchantTable : MonoBehaviour
         if (objectOnTable != null) return;
         if (!other.CompareTag("Items")) return;
 
-        if (ItemPickup.Instance != null && ItemPickup.Instance.pickedItem != null)
-        {
-            Debug.LogWarning("❌ 다른 아이템을 들고 있는 상태에서는 부품을 추가할 수 없습니다!");
+        var ctrl = ItemInteractionController.Instance;
+        if (ctrl != null && other.transform.IsChildOf(ctrl.playerCamera))
             return;
-        }
 
         var item = other.GetComponent<ItemComponent>();
         if (item == null) return;
@@ -67,7 +65,7 @@ public class EnchantTable : MonoBehaviour
     {
         enchantUI.SetActive(true);
         onEnchanting = true;
-        PlayerController.Instance.MoveCameraToWorld(cameraEnchantViewPoint, cameraMoveDuration);
+        PlayerController.Instance.cam.MoveTo(cameraEnchantViewPoint, cameraMoveDuration);
     }
 
     private void CloseEnchantUI()
@@ -75,6 +73,6 @@ public class EnchantTable : MonoBehaviour
         enchantUI.SetActive(false);
         objectOnTable = null;
         onEnchanting = false;
-        PlayerController.Instance.ResetCameraToLocalDefault(cameraMoveDuration);
+        PlayerController.Instance.cam.ResetToDefault(cameraMoveDuration);
     }
 }

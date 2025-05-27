@@ -49,6 +49,11 @@ public class RotateGrindingWheel : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        var ctrl = ItemInteractionController.Instance;
+        // 카메라 자식(=들고 있거나 장착된 아이템)은 전부 무시
+        if (ctrl != null && other.transform.IsChildOf(ctrl.playerCamera))
+            return;
+
         // ItemComponent 가져오기
         polishingItem = other.GetComponent<ItemComponent>();
 
@@ -61,12 +66,9 @@ public class RotateGrindingWheel : MonoBehaviour
             {
                 OpenGrindingUI();
                 
-                if (ItemPickup.Instance != null && ItemPickup.Instance.pickedItem == polishingItem.gameObject) //아이템 위치 고정
-                {
-                    polishingItem.transform.SetParent(itemPosition);
-                    polishingItem.transform.position = itemPosition.position;
-                    polishingItem.transform.rotation = itemPosition.rotation;
-                }
+                polishingItem.transform.SetParent(itemPosition);
+                polishingItem.transform.position = itemPosition.position;
+                polishingItem.transform.rotation = itemPosition.rotation;
 
                 // 기존 코루틴이 있으면 종료
                 if (polishingCoroutine != null)
@@ -150,12 +152,12 @@ public class RotateGrindingWheel : MonoBehaviour
     private void OpenGrindingUI() //연마 진입
     {
         onGrinding = true;
-        PlayerController.Instance.MoveCameraToWorld(cameraGrindingViewpoint, cameraMoveDuration);
+        PlayerController.Instance.cam.MoveTo(cameraGrindingViewpoint, cameraMoveDuration);
     }
 
     private void CloseGrindingUI() //연마 나가기
     {
         onGrinding = false;
-        PlayerController.Instance.ResetCameraToLocalDefault(cameraMoveDuration);
+        PlayerController.Instance.cam.ResetToDefault(cameraMoveDuration);
     }
 }

@@ -19,7 +19,7 @@ public class MoveCameraAction : ScriptableObject, IEventAction
         Quaternion targetRotation = Quaternion.Euler(targetEulerAngles);
 
         // PlayerController에 새로 만든 메서드 호출
-        PlayerController.Instance.MoveCameraToWorld(
+        PlayerController.Instance.cam.MoveTo(
             targetPosition,
             targetRotation,
             duration

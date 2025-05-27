@@ -1,5 +1,7 @@
+// Hammer.cs
 using UnityEngine;
 using System.Collections;
+using DG.Tweening;  // 이미 쓰고 계시니 추가 없으셔도 됩니다
 
 public class Hammer : Tool
 {
@@ -9,26 +11,27 @@ public class Hammer : Tool
 
     public override void Use()
     {
-        Transform camera = ItemPickup.Instance.playerCamera;
-        float range = ItemPickup.Instance.pickupDistance;
+        // 컨트롤러에서 카메라·거리 가져오기
+        var ctrl = ItemInteractionController.Instance;
+        Transform camera = ctrl.playerCamera;
+        float range = ctrl.pickupDistance;
 
         Ray ray = new Ray(camera.position, camera.forward);
         RaycastHit[] hits = Physics.RaycastAll(ray, range);
 
-        foreach (RaycastHit hit in hits)
+        foreach (var hit in hits)
         {
-            // 자기 자신 무시
-            if (ItemPickup.Instance.pickedItem != null &&
-                hit.collider.transform.IsChildOf(ItemPickup.Instance.pickedItem.transform))
+            // 1) 카메라 자식(=들고 있거나 장착된 아이템)은 무시
+            if (hit.collider.transform.IsChildOf(camera))
                 continue;
 
-            // 태그 확인
+            // 2) Items 태그만 처리
             if (!hit.collider.CompareTag("Items"))
                 continue;
 
             Debug.Log("🔨 망치 타격: " + hit.collider.name);
 
-            // 파티클 위치만 옮겨서 재생
+            // 3) 파티클
             if (sparkEffect != null)
             {
                 sparkEffect.transform.position = hit.point;
@@ -36,32 +39,26 @@ public class Hammer : Tool
                 sparkEffect.Play();
             }
 
-            // 사운드 재생
+            // 4) 사운드
             if (!isPlayingSound)
-            {
-                ItemPickup.Instance.StartCoroutine(PlayHammerSound(hit.point));
-            }
+                ctrl.StartCoroutine(PlayHammerSound(hit.point));
 
-            // 충돌 카운트 처리
-            WeaponBase targetWeapon = hit.collider.GetComponentInParent<WeaponBase>();
-            if (targetWeapon != null)
-            {
-                targetWeapon.IncrementCollisionCount(hit.collider.name);
-            }
+            // 5) WeaponBase 처리
+            var target = hit.collider.GetComponentInParent<WeaponBase>();
+            if (target != null)
+                target.IncrementCollisionCount(hit.collider.name);
 
-            break; // 가장 가까운 대상만 처리
+            // 가까운 것 하나만
+            break;
         }
     }
 
     private IEnumerator PlayHammerSound(Vector3 position)
     {
         isPlayingSound = true;
-
         string[] soundNames = { "HammerHeat_1", "HammerHeat_3" };
-        int randIndex = Random.Range(0, soundNames.Length);
-
-        SoundManager.Instance.PlaySoundAtPosition(soundNames[randIndex], position);
-
+        int idx = Random.Range(0, soundNames.Length);
+        SoundManager.Instance.PlaySoundAtPosition(soundNames[idx], position);
         yield return new WaitForSeconds(soundDelay);
         isPlayingSound = false;
     }

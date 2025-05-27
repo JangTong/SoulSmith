@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 8080436617075424530}
   - component: {fileID: 3979895905267336788}
   - component: {fileID: 2069857981916105254}
+  - component: {fileID: 3767859472329027470}
+  - component: {fileID: 7449979622341818289}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -70,6 +72,30 @@ MonoBehaviour:
   portraitImage: {fileID: 6256338694693412855}
   nextButton: {fileID: 8112749115115571405}
   sellButton: {fileID: 3087021222007565041}
+--- !u!114 &3767859472329027470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1667965888087030557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 681a0e51ce8a00f48a4cbd352e20bab6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7449979622341818289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1667965888087030557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5620170dbf46d2c47bc55e63a89ba65e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2887446290831140366
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -154,7 +180,8 @@ PrefabInstance:
       value: 73
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 634201927652421358, guid: 906e43ee9264cad418c18adeb65675e5, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 906e43ee9264cad418c18adeb65675e5, type: 3}

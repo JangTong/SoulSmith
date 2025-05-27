@@ -1,3 +1,4 @@
+// Pickaxe.cs
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -10,8 +11,9 @@ public class Pickaxe : Tool
 
     public override void Use()
     {
-        Transform camera = ItemPickup.Instance.playerCamera;
-        float range = ItemPickup.Instance.pickupDistance;
+        var ctrl = ItemInteractionController.Instance;
+        Transform camera = ctrl.playerCamera;
+        float range = ctrl.pickupDistance;
 
         Ray ray = new Ray(camera.position, camera.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, range, terrainLayer))
@@ -19,22 +21,24 @@ public class Pickaxe : Tool
             Debug.Log("⛏️ 곡괭이 사용: " + hit.collider.name);
 
             Vector3 digPoint = hit.point;
+            Collider[] cols = Physics.OverlapSphere(digPoint, digRadius, terrainLayer);
+            var affected = new List<TerrainChunk>();
 
-            // ✅ 구형 범위 내 TerrainChunk 수집
-            Collider[] colliders = Physics.OverlapSphere(digPoint, digRadius, terrainLayer);
-            List<TerrainChunk> affectedChunks = new();
-
-            foreach (var col in colliders)
+            foreach (var col in cols)
             {
-                TerrainChunk chunk = col.GetComponent<TerrainChunk>();
-                if (chunk != null && !affectedChunks.Contains(chunk)) // 중복 제거
+                // 카메라 자식(들고 있거나 장착된 아이템)은 제외
+                if (col.transform.IsChildOf(camera))
+                    continue;
+
+                var chunk = col.GetComponent<TerrainChunk>();
+                if (chunk != null && !affected.Contains(chunk))
                 {
-                    affectedChunks.Add(chunk);
+                    affected.Add(chunk);
                     chunk.DigAtWorldPosition(digPoint, digRadius, digStrength);
                 }
             }
 
-            // 파티클 재생
+            // 파티클
             if (digEffect != null)
             {
                 digEffect.transform.position = hit.point;
@@ -42,6 +46,5 @@ public class Pickaxe : Tool
                 digEffect.Play();
             }
         }
-}
-
+    }
 }

@@ -43,8 +43,11 @@ public class Anvil : MonoBehaviour
             return;
         }
 
+        var ctrl = ItemInteractionController.Instance;
+        if (ctrl != null && other.transform.IsChildOf(ctrl.playerCamera))
+            return;
+
         // 아이템 고정 처리
-        if (ItemPickup.Instance.currentState != ItemPickupState.Idle) return;
         var comp = other.GetComponent<ItemComponent>();
         if (comp == null || comp.itemType != ItemType.Resource || comp.materialType != MaterialType.Metal) return;
 
@@ -52,6 +55,8 @@ public class Anvil : MonoBehaviour
         other.GetComponent<Rigidbody>().isKinematic = true;
         other.transform.SetParent(fixedPosition);
         other.transform.DOLocalMove(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
+        float currentY = other.transform.localEulerAngles.y;
+        other.transform.DOLocalRotate(new Vector3(0f, currentY, 0f), 0.3f).SetEase(Ease.OutSine);
 
         weaponBase = objectOnAnvil.GetComponent<WeaponBase>();
         if (weaponBase != null) weaponBase.isOnAnvil = true;

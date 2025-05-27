@@ -136,7 +136,7 @@ public class DialogueManager : MonoBehaviour
     {
         dialoguePanel.SetActive(false);
         ToggleGameUI(false);
-        PlayerController.Instance.ResetCameraToLocalDefault();
+        PlayerController.Instance.cam.ResetToDefault();
 
         nextButton.onClick.RemoveAllListeners();
         nextButton.onClick.AddListener(NextDialogue);
@@ -167,9 +167,9 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    private void ToggleGameUI(bool enable)
+    private void ToggleGameUI(bool isToggleUI = true, bool isTimeStop = false)
     {
-        PlayerController.Instance.ToggleUI(enable);
-        //GameManager.Instance.ToggleTime(enable);
+        PlayerController.Instance.ToggleUI(isToggleUI);
+        GameManager.Instance.ToggleTime(isTimeStop);
     }
 }

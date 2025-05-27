@@ -82,6 +82,22 @@ public class PlayerCameraController : MonoBehaviour
             .OnKill(() => currentTween = null);
     }
 
+    public void ShakeCamera(float duration = 0.2f, float strength = 0.1f)
+    {
+        if (cameraTransform == null)
+        {
+            Debug.LogWarning("[CameraController] cameraTransform이 할당되지 않았습니다.");
+            return;
+        }
+
+        // DOTween으로 위치 기반 흔들기
+        cameraTransform
+            .DOShakePosition(duration, strength)
+            .SetEase(Ease.Linear);
+
+        Debug.Log($"[CameraController] ShakeCamera 호출 → duration: {duration}s, strength: {strength}");
+    }
+
     private void LockUI(bool active)
     {
         Cursor.lockState = active ? CursorLockMode.None : CursorLockMode.Locked;
@@ -94,4 +110,6 @@ public class PlayerCameraController : MonoBehaviour
         if (currentTween != null && currentTween.IsActive())
             currentTween.Kill();
     }
+
+    
 }

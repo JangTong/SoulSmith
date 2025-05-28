@@ -98,14 +98,14 @@ public class PlayerController : MonoBehaviour
             Debug.Log("[PlayerController] Landed");
     }
 
-    public void SetCameraPitch(float pitch)
-    {
-        xRotation = Mathf.Clamp(pitch, -90f, 90f);
-        Debug.Log($"[PlayerController] Camera pitch synced: {xRotation}");
-    }
 
     public bool IsUIActive()
     {
         return isUIActive;
+    }
+    public void SetCameraPitch(float pitch)
+    {
+        xRotation = Mathf.Clamp(pitch, -90f, 90f);
+        Debug.Log($"[PlayerController] Camera pitch synced: {xRotation}");
     }
 }

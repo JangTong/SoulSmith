@@ -11,13 +11,13 @@ public class TradeZone : MonoBehaviour
     // 3) OverlapSphereNonAlloc용 버퍼
     private readonly Collider[] overlapResults = new Collider[16];
 
-    private Customer currentCustomer;
+    private CustomerNPC currentCustomer;
     private ItemComponent placedItem;
     private EnchantComponent placedEnchant;
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent(out Customer cust))
+        if (other.TryGetComponent(out CustomerNPC cust))
         {
             currentCustomer = cust;
             cust.tradeZone = this;
@@ -26,7 +26,7 @@ public class TradeZone : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        if (other.TryGetComponent(out Customer cust) && cust == currentCustomer)
+        if (other.TryGetComponent(out CustomerNPC cust) && cust == currentCustomer)
         {
             cust.tradeZone = null;
             currentCustomer = null;

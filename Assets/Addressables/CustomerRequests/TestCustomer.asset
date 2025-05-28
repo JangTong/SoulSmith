@@ -17,10 +17,20 @@ MonoBehaviour:
   inlineMainDialogue:
   - text: "\uAD6C\uB9AC\uAC801"
     speaker: Test
-    portrait: {fileID: 0}
+    portrait: {fileID: -348211939, guid: a03e9228371be9449a97a937850924ca, type: 3}
+    eventToTrigger: {fileID: 0}
   - text: "\uAD6C\uB9AC\uAC802\n"
     speaker: Test
-    portrait: {fileID: 0}
+    portrait: {fileID: -348211939, guid: a03e9228371be9449a97a937850924ca, type: 3}
+    eventToTrigger: {fileID: 0}
+  - text: "\uAD6C\uB9AC\uAC803\n"
+    speaker: Test
+    portrait: {fileID: -348211939, guid: a03e9228371be9449a97a937850924ca, type: 3}
+    eventToTrigger: {fileID: 0}
+  - text: "\uAD6C\uB9AC\uAC804"
+    speaker: Test
+    portrait: {fileID: -348211939, guid: a03e9228371be9449a97a937850924ca, type: 3}
+    eventToTrigger: {fileID: 0}
   referenceMainDialogue: {fileID: 11400000, guid: 6c0786f266a5f7045880b6906607844f,
     type: 2}
   useInlineSuccessDialogue: 1
@@ -28,18 +38,22 @@ MonoBehaviour:
   - text: Success 1
     speaker: Test
     portrait: {fileID: 0}
+    eventToTrigger: {fileID: 0}
   - text: Success 2
     speaker: Test
     portrait: {fileID: 0}
+    eventToTrigger: {fileID: 0}
   referenceSuccessDialogue: {fileID: 0}
   useInlineFailureDialogue: 1
   inlineFailureDialogue:
   - text: Failure 1
     speaker: Test
     portrait: {fileID: 0}
+    eventToTrigger: {fileID: 0}
   - text: Failure 2
     speaker: Test
     portrait: {fileID: 21300000, guid: 6932684c1372d4d429aaa9f9cc0f611a, type: 3}
+    eventToTrigger: {fileID: 0}
   referenceFailureDialogue: {fileID: 11400000, guid: 6c0786f266a5f7045880b6906607844f,
     type: 2}
   useWeaponType: 1

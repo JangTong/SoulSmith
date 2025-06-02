@@ -28,11 +28,10 @@ public class ItemInteractionInput : MonoBehaviour
 
     private void Update()
     {
-        bool uiActive = PlayerController.Instance != null && PlayerController.Instance.IsUIActive();
-        Debug.Log($"{LOG_PREFIX} Update: UIActive={uiActive}");
-        if (uiActive)
+        // UI가 활성화된 상태에서는 아이템 관련 입력을 처리하지 않음
+        // PlayerController가 없을 수도 있으므로 null 체크 추가
+        if (PlayerController.Instance != null && PlayerController.Instance.IsUIActive())
         {
-            Debug.Log($"{LOG_PREFIX} Update: Skipping input due to UI");
             return;
         }
 

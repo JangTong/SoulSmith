@@ -7,6 +7,7 @@ using UnityEngine;
 /// </summary>
 public class GameEventProgress : MonoBehaviour
 {
+    private const string LOG_PREFIX = "[GameEventProgress]";
     public static GameEventProgress Instance { get; private set; }
 
     private readonly HashSet<string> completedEvents = new HashSet<string>();
@@ -17,10 +18,11 @@ public class GameEventProgress : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[GameEventProgress] Instance initialized");
+            Debug.Log($"{LOG_PREFIX} 인스턴스 초기화 완료");
         }
         else
         {
+            Debug.LogWarning($"{LOG_PREFIX} 중복 인스턴스 감지 - 제거됨");
             Destroy(gameObject);
             return;
         }
@@ -32,7 +34,7 @@ public class GameEventProgress : MonoBehaviour
     public bool IsCompleted(string eventId)
     {
         bool result = completedEvents.Contains(eventId);
-        Debug.Log($"[GameEventProgress] IsCompleted('{eventId}') => {result}");
+        Debug.Log($"{LOG_PREFIX} 이벤트 '{eventId}' 완료 여부: {result}");
         return result;
     }
 
@@ -41,13 +43,19 @@ public class GameEventProgress : MonoBehaviour
     /// </summary>
     public void MarkComplete(string eventId)
     {
+        if (string.IsNullOrEmpty(eventId))
+        {
+            Debug.LogWarning($"{LOG_PREFIX} 빈 eventId로 MarkComplete 호출됨");
+            return;
+        }
+
         if (completedEvents.Add(eventId))
         {
-            Debug.Log($"[GameEventProgress] Event '{eventId}' marked complete.");
+            Debug.Log($"{LOG_PREFIX} 이벤트 '{eventId}' 완료로 표시됨");
         }
         else
         {
-            Debug.LogWarning($"[GameEventProgress] Event '{eventId}' was already marked complete.");
+            Debug.LogWarning($"{LOG_PREFIX} 이벤트 '{eventId}' 이미 완료 상태임");
         }
     }
 
@@ -57,7 +65,8 @@ public class GameEventProgress : MonoBehaviour
     [ContextMenu("Reset Events")]
     public void ResetProgress()
     {
+        int count = completedEvents.Count;
         completedEvents.Clear();
-        Debug.Log("[GameEventProgress] All event progress has been reset.");
+        Debug.Log($"{LOG_PREFIX} 모든 이벤트 진행 상태 초기화 완료 (총 {count}개 이벤트)");
     }
 }

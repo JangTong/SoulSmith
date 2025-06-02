@@ -4,6 +4,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "GameEvent/Action/Move Camera To Position & Rotation")]
 public class MoveCameraAction : ScriptableObject, IEventAction
 {
+    private const string LOG_PREFIX = "[MoveCameraAction]";
+
     [Tooltip("카메라가 이동할 월드 좌표")]
     public Vector3 targetPosition;
 
@@ -15,6 +17,14 @@ public class MoveCameraAction : ScriptableObject, IEventAction
 
     public void Execute()
     {
+        if (PlayerController.Instance == null || PlayerController.Instance.cam == null)
+        {
+            Debug.LogError($"{LOG_PREFIX} PlayerController 또는 카메라가 없습니다.");
+            return;
+        }
+
+        Debug.Log($"{LOG_PREFIX} 카메라 이동 시작 - 위치: {targetPosition}, 회전: {targetEulerAngles}, 시간: {duration}초");
+
         // Vector3 → Quaternion 변환
         Quaternion targetRotation = Quaternion.Euler(targetEulerAngles);
 
@@ -25,6 +35,6 @@ public class MoveCameraAction : ScriptableObject, IEventAction
             duration
         );
 
-        Debug.Log($"[MoveCameraAction] 위치 {targetPosition}, 회전 {targetEulerAngles}로 이동·회전 ({duration}초)");
+        Debug.Log($"{LOG_PREFIX} 카메라 이동 요청 완료");
     }
 }

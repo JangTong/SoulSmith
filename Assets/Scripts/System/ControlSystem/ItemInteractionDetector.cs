@@ -10,14 +10,14 @@ public class ItemInteractionDetector : MonoBehaviour
     public float detectDistance = 4f;
 
     private Transform playerCamera;
-    
+    private bool wasShowingItem = false;  // 이전 UI 표시 상태
 
     void Awake()
     {
         Debug.Log($"{LOG_PREFIX} Awake: initializing instance");
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning($"{LOG_PREFIX} Duplicate instance detected, destroying this");
+            Debug.LogWarning($"{LOG_PREFIX} Duplicate instance, destroying this");
             Destroy(gameObject);
             return;
         }
@@ -37,27 +37,36 @@ public class ItemInteractionDetector : MonoBehaviour
 
     void Update()
     {
-        Debug.Log($"{LOG_PREFIX} Update: calling UpdateDetectionUI");
         UpdateDetectionUI();
     }
 
     private void UpdateDetectionUI()
     {
-        Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: attempting raycast");
-        if (TryPerformRaycast(out RaycastHit hit) && hit.transform.CompareTag("Items"))
+        // ① 현재 프레임 감지 상태 계산
+        bool willShow = false;
+        RaycastHit hit;
+        ItemComponent comp = null;
+        if (TryPerformRaycast(out hit) && hit.transform.CompareTag("Items"))
         {
-            Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: hit {hit.transform.name}");
-            var comp = hit.transform.GetComponent<ItemComponent>();
-            if (comp != null && !string.IsNullOrEmpty(comp.itemName))
-            {
-                Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: showing item name {comp.itemName}");
-                UIManager.Instance.ShowItemName(comp.itemName);
-                return;
-            }
-            Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: no valid ItemComponent on {hit.transform.name}");
+            comp = hit.transform.GetComponent<ItemComponent>();
+            willShow = comp != null && !string.IsNullOrEmpty(comp.itemName);
         }
-        Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: hiding item name UI");
-        UIManager.Instance.HideItemName();
+        
+        // ② 상태 변화 시에만 로그
+        if (willShow != wasShowingItem)
+        {
+            if (willShow)
+                Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: hit {hit.transform.name}, showing item {comp.itemName}");
+            else
+                Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: hiding item UI");
+            wasShowingItem = willShow;
+        }
+
+        // ③ UI 토글 (기존 로직)
+        if (willShow)
+            UIManager.Instance.ShowItemName(comp.itemName);
+        else
+            UIManager.Instance.HideItemName();
     }
 
     public bool TryPerformRaycast(out RaycastHit hit)
@@ -70,14 +79,11 @@ public class ItemInteractionDetector : MonoBehaviour
         {
             if (hit.transform.IsChildOf(playerCamera))
             {
-                Debug.Log($"{LOG_PREFIX} TryPerformRaycast: hit held child {hit.transform.name}, ignoring");
                 hit = default;
                 return false;
             }
-            Debug.Log($"{LOG_PREFIX} TryPerformRaycast: hit valid object {hit.transform.name}");
             return true;
         }
-        Debug.Log($"{LOG_PREFIX} TryPerformRaycast: no hit");
         hit = default;
         return false;
     }

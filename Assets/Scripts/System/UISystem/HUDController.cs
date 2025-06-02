@@ -3,6 +3,8 @@ using TMPro;
 
 public class HUDController : MonoBehaviour
 {
+    private const string LOG_PREFIX = "[ItemInteractionDetector]";
+
     [Header("HUD 기본")]
     [SerializeField] private TextMeshProUGUI goldText;
     [SerializeField] private TextMeshProUGUI dayText;

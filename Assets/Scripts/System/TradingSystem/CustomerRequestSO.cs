@@ -5,6 +5,10 @@ using UnityEngine;
 public class CustomerRequestSO : ScriptableObject
 {
     public string customerName;
+    
+    [Header("=== Trade Behavior ===")]
+    [Tooltip("거래 후에도 동일한 요청으로 다시 거래를 시도할 수 있는지 여부입니다.")]
+    public bool isRepeatable = false;
 
     [Header("=== Main Dialogue (거래 시작) ===")]
     [Tooltip("인라인 대사를 쓸 경우 체크")]
@@ -117,6 +121,15 @@ public class CustomerRequestSO : ScriptableObject
     public List<string> requiredMaterialNames = new List<string>();
     public int requiredMaterialCount = 1;
     [Range(0f, 1f)] public float materialWeight = 0f;
+
+
+    [Header("=== Post-Trade Dialogue (거래 후 반복 불가능 시) ===")]
+    [Tooltip("거래 후 반복 불가능 상태일 때 출력할 대화입니다. 인라인 대사를 쓸 경우 체크합니다.")]
+    public bool useInlinePostTradeDialogue;
+    [Tooltip("거래 후 반복 불가능 상태일 때의 인라인 대사 리스트입니다.")]
+    public List<DialogueLine> inlinePostTradeDialogue = new List<DialogueLine>();
+    [Tooltip("거래 후 반복 불가능 상태일 때 참조할 외부 DialogueData 에셋입니다.")]
+    public DialogueData referencePostTradeDialogue;
 
     /// <summary>
     /// 평가 점수와 거래 허용 여부를 반환합니다.

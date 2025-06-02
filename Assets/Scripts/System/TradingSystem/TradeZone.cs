@@ -110,7 +110,7 @@ public class TradeZone : MonoBehaviour
             {
                 Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 거래 성공. 보상 처리 및 성공 대화 재생.");
                 // 보상 지급 (평가 점수가 반영된 가격으로 골드 추가)
-                GameManager.Instance.AddGold(adjustedPrice);
+                EconomyManager.Instance.AddGold(adjustedPrice);
                 Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 아이템 '{placedItem.itemName}'의 기본 가격 {basePrice}G에서 평가 점수 {evaluationScore:F2}에 따라 조정된 {adjustedPrice}G를 지급했습니다.");
                 Destroy(placedItem.gameObject); // 아이템 제거
                 Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 아이템 '{placedItem.itemName}' 제거 및 보상 지급 완료.");

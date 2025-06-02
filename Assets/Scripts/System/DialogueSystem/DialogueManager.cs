@@ -226,7 +226,7 @@ public class DialogueManager : MonoBehaviour
     {
         Debug.Log($"{LOG_PREFIX} ToggleGameUI – UIActive:{enableUI}, StopTime:{stopTime}");
         PlayerController.Instance.ToggleUI(enableUI);
-        GameManager.Instance.ToggleTime(stopTime);
+        TimeManager.Instance.ToggleTime(stopTime);
         UIManager.Instance.SetFocusActive(!enableUI);
     }
 }

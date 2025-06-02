@@ -184,9 +184,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cam: {fileID: 0}
   moveSpeed: 7
-  lookSpeed: 80
+  lookSpeed: 2
   jumpForce: 1
   gravity: -9.81
+  groundedVelocity: -2
+  groundCheckDistance: 0.1
+  minCameraPitch: -90
+  maxCameraPitch: 90
 --- !u!114 &2693204257733070229
 MonoBehaviour:
   m_ObjectHideFlags: 0

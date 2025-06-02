@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1667965888087030557
+--- !u!1 &169624901932079929
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,11 +8,13 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8080436617075424530}
-  - component: {fileID: 3979895905267336788}
-  - component: {fileID: 2069857981916105254}
-  - component: {fileID: 3767859472329027470}
-  - component: {fileID: 7449979622341818289}
+  - component: {fileID: 8916679283995051587}
+  - component: {fileID: 2672461812664437587}
+  - component: {fileID: 8348273336692226168}
+  - component: {fileID: 8577643333047392011}
+  - component: {fileID: 8001630083849863627}
+  - component: {fileID: 795921237459243395}
+  - component: {fileID: 3479957633088076252}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -20,72 +22,104 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8080436617075424530
+--- !u!4 &8916679283995051587
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1667965888087030557}
+  m_GameObject: {fileID: 169624901932079929}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.37779954, y: 0.50158495, z: 0.45959747}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3979895905267336788
+--- !u!114 &2672461812664437587
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1667965888087030557}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d425c48c9dc8064d8a1e84b2b56456e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerGold: 100
-  goldText: {fileID: 0}
-  timerText: {fileID: 0}
-  dayText: {fileID: 0}
-  summaryPanel: {fileID: 0}
-  earningsText: {fileID: 0}
---- !u!114 &2069857981916105254
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1667965888087030557}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2447e739fa31a84ab0a5b95ab8ea0b1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &3767859472329027470
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1667965888087030557}
+  m_GameObject: {fileID: 169624901932079929}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 681a0e51ce8a00f48a4cbd352e20bab6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7449979622341818289
+--- !u!114 &8348273336692226168
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1667965888087030557}
+  m_GameObject: {fileID: 169624901932079929}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5620170dbf46d2c47bc55e63a89ba65e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8577643333047392011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169624901932079929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 045ee16c4c9a6b544a651128a22b4743, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dayDuration: 300
+  dayStartHour: 8
+--- !u!114 &8001630083849863627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169624901932079929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9620e25f295f0cb43b55a2badaaebfef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &795921237459243395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169624901932079929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70dc08cd39828a24484a19abfd0acedd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startingGold: 100
+--- !u!114 &3479957633088076252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169624901932079929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae0632834963cd846bd9747561031bbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainLight: {fileID: 0}
+  dawn: -30
+  noon: 60
+  dusk: 150
+  night: 210
+  dawnColor: {r: 1, g: 0.8, b: 0.6, a: 1}
+  dayColor: {r: 1, g: 1, b: 1, a: 1}
+  duskColor: {r: 1, g: 0.6, b: 0.3, a: 1}
+  nightColor: {r: 0.2, g: 0.2, b: 0.3, a: 1}
+  dayIntensity: 1
+  nightIntensity: 0.1

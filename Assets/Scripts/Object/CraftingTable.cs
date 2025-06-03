@@ -14,6 +14,10 @@ public class CraftingTable : MonoBehaviour
     [Header("Camera Positions")]
     public Transform cameraCraftingViewPoint;
     public float cameraMoveDuration = 0.5f;
+    
+    [Header("Orthographic Settings")]
+    public bool useOrthographicInEditMode = true; // 편집 모드에서 직교 투영 사용 여부
+    public float orthographicSize = 3f; // 직교 투영 크기
 
     [Header("Movement Settings")]
     public float moveSpeed = 1f;
@@ -83,6 +87,12 @@ public class CraftingTable : MonoBehaviour
         // UI 감지 비활성화
         DisableUIDetection();
         
+        // 직교 투영 모드 활성화 (편집 모드 전용)
+        if (useOrthographicInEditMode)
+        {
+            PlayerController.Instance.cam.EnableOrthographicMode(orthographicSize);
+        }
+        
         // 기존 PlayerCameraController 사용
         PlayerController.Instance.cam.MoveTo(cameraCraftingViewPoint, cameraMoveDuration);
     }
@@ -90,6 +100,12 @@ public class CraftingTable : MonoBehaviour
     private void SwitchToMainCamera()
     {
         Debug.Log($"{LOG_PREFIX} SwitchToMainCamera: 카메라를 기본 시점으로 복귀 (duration={cameraMoveDuration}s)");
+        
+        // 직교 투영 모드 비활성화
+        if (useOrthographicInEditMode)
+        {
+            PlayerController.Instance.cam.DisableOrthographicMode();
+        }
         
         // 기존 PlayerCameraController 사용
         PlayerController.Instance.cam.ResetToDefault(cameraMoveDuration);

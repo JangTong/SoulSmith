@@ -81,14 +81,58 @@ public class TradeZone : MonoBehaviour
 
         int count = Physics.OverlapSphereNonAlloc(saleSlot.position, slotRadius, overlapResults);
         placedItem = null;
+        
+        // 디버그: 감지된 모든 콜라이더 출력
+        Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 감지된 콜라이더 수: {count}");
+        for (int i = 0; i < count; i++)
+        {
+            var hit = overlapResults[i];
+            Debug.Log($"{LOG_PREFIX} 감지된 오브젝트 [{i}]: {hit.name}, 태그: {hit.tag}, 계층구조: {GetHierarchyPath(hit.transform)}");
+        }
+        
+        // 아이템 인식 로직 - 루트 오브젝트 우선 검색
+        GameObject rootWeapon = null;
+        
+        // 1단계: 모든 감지된 콜라이더 중 Items 태그를 가진 것들의 루트 오브젝트를 찾음
         for (int i = 0; i < count; i++)
         {
             var hit = overlapResults[i];
             if (!hit.CompareTag("Items")) continue;
-            // GetComponentInParent 대신 Getcomponent (루트 오브젝트에 ItemComponent가 있다고 가정)
-            // 만약 자식 오브젝트에도 ItemComponent가 있을 수 있다면 GetComponentsInParent가 맞음
-            placedItem = hit.GetComponent<ItemComponent>(); 
-            if (placedItem != null) break;
+            
+            // 루트 오브젝트 찾기
+            Transform root = hit.transform;
+            while (root.parent != null && root.parent.GetComponent<ItemComponent>() != null)
+            {
+                root = root.parent;
+            }
+            
+            rootWeapon = root.gameObject;
+            Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 아이템 계층 구조의 루트 오브젝트: {rootWeapon.name}");
+            
+            // 루트 오브젝트에서 ItemComponent 검색
+            placedItem = rootWeapon.GetComponent<ItemComponent>();
+            if (placedItem != null)
+            {
+                Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 루트 오브젝트 '{rootWeapon.name}'에서 아이템 '{placedItem.itemName}' 발견");
+                break;
+            }
+        }
+        
+        // 루트 오브젝트에서 아이템을 찾지 못한 경우에만 개별 파츠 검색
+        if (placedItem == null)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                var hit = overlapResults[i];
+                if (!hit.CompareTag("Items")) continue;
+                
+                placedItem = hit.GetComponent<ItemComponent>();
+                if (placedItem != null)
+                {
+                    Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 개별 파츠에서 아이템 '{placedItem.itemName}' 발견");
+                    break;
+                }
+            }
         }
 
         var req = currentInteractingCustomer.request;
@@ -112,7 +156,10 @@ public class TradeZone : MonoBehaviour
                 // 보상 지급 (평가 점수가 반영된 가격으로 골드 추가)
                 EconomyManager.Instance.AddGold(adjustedPrice);
                 Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 아이템 '{placedItem.itemName}'의 기본 가격 {basePrice}G에서 평가 점수 {evaluationScore:F2}에 따라 조정된 {adjustedPrice}G를 지급했습니다.");
-                Destroy(placedItem.gameObject); // 아이템 제거
+                
+                // 루트 오브젝트를 찾았다면 루트 오브젝트를 제거, 아니면 파츠 제거
+                GameObject objectToDestroy = rootWeapon != null ? rootWeapon : placedItem.gameObject;
+                Destroy(objectToDestroy);
                 Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 아이템 '{placedItem.itemName}' 제거 및 보상 지급 완료.");
 
                 if (req.useInlineSuccessDialogue)
@@ -139,6 +186,21 @@ public class TradeZone : MonoBehaviour
             else
                 DialogueManager.Instance.PlayGeneralDialogue(req.referenceFailureDialogue, OnAfterResult);
         }
+    }
+    
+    // 오브젝트의 계층 구조 경로를 문자열로 반환
+    private string GetHierarchyPath(Transform transform)
+    {
+        string path = transform.name;
+        Transform parent = transform.parent;
+        
+        while (parent != null)
+        {
+            path = parent.name + "/" + path;
+            parent = parent.parent;
+        }
+        
+        return path;
     }
 
     private void OnAfterResult()

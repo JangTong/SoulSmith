@@ -51,7 +51,7 @@ Material:
     m_Ints: []
     m_Floats:
     - GradientSmoothness: 1
-    - Vector1_387E92A5: 0.1
+    - Vector1_387E92A5: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:

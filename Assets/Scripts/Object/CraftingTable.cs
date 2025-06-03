@@ -1,5 +1,6 @@
 using UnityEngine;
 using DG.Tweening;
+using System.Collections.Generic;
 
 public class CraftingTable : MonoBehaviour
 {
@@ -16,6 +17,12 @@ public class CraftingTable : MonoBehaviour
     public ItemComponent currentBlade;
     public ItemComponent currentPart;
     private bool isEditing = false;
+    
+    [Header("Forging Settings")]
+    public int requiredHitsPerPart = 3; // 각 파츠당 필요한 타격 횟수
+    
+    // 파츠별 타격 횟수 추적
+    private Dictionary<Transform, int> partHitCounts = new Dictionary<Transform, int>();
 
     private void Awake()
     {
@@ -43,10 +50,9 @@ public class CraftingTable : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // 1) HammerHead 조합 로직은 건드리지 않고 바로 처리
+        // HammerHead는 이제 Raycast 기반으로만 처리 (무시)
         if (other.gameObject.name == "HammerHead")
         {
-            CombineParts();
             return;
         }
 
@@ -138,6 +144,9 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
     {
         Physics.IgnoreCollision(partCollider, bladeCollider, true);
     }
+    
+    // 파츠 타격 횟수 초기화
+    partHitCounts[currentPart.transform] = 0;
 
     isEditing = true;
 }
@@ -145,32 +154,87 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
 
         SwitchToTableCamera();
     }
-
-    private void CombineParts()
+    
+    // Raycast 기반 망치 타격 처리 함수 - Hammer.cs에서 호출됨
+    public void HandleHammerHit(Transform hitTransform, Vector3 hitPoint)
     {
+        Debug.Log($"[CraftingTable] HandleHammerHit 호출됨: {hitTransform.name}");
+        
         if (currentBlade == null)
         {
-            Debug.LogError("❌ currentBlade가 NULL입니다! 조합할 수 없습니다.");
+            Debug.LogWarning("[CraftingTable] currentBlade가 NULL입니다!");
             return;
         }
-
-        foreach (Transform child in currentBlade.transform)
+        
+        // 타격된 파츠가 현재 블레이드의 자식인지 확인
+        if (!hitTransform.IsChildOf(currentBlade.transform) && hitTransform != currentBlade.transform)
         {
-            if (child.TryGetComponent<ItemComponent>(out ItemComponent part))
-            {
-                currentBlade.AddStatsFrom(part);
-                part.canCombine = false; // 조합 완료 처리
-            }
-            if (child.TryGetComponent<Rigidbody>(out Rigidbody rb))
-            {
-                Destroy(rb);
-            }
+            Debug.LogWarning($"[CraftingTable] {hitTransform.name}은(는) currentBlade의 자식이 아닙니다!");
+            return;
         }
-
-        currentBlade.canCombine = false;
-
-        Debug.Log("🔨 HammerHead 충돌 감지! 모든 부품이 하나로 합쳐지고 PartsType이 None으로 변경되었습니다.");
-        currentBlade = null;
+        
+        // 파츠 컴포넌트 확인
+        ItemComponent partItem = hitTransform.GetComponent<ItemComponent>();
+        if (partItem == null)
+        {
+            Debug.LogWarning($"[CraftingTable] {hitTransform.name}에 ItemComponent가 없습니다!");
+            return;
+        }
+        
+        // 블레이드는 타격 대상이 아님
+        if (partItem.partsType == PartsType.Blade)
+        {
+            Debug.LogWarning("[CraftingTable] 블레이드는 타격 대상이 아닙니다!");
+            return;
+        }
+        
+        // 이미 합성된 파츠는 무시
+        if (partItem.isPolished)
+        {
+            Debug.Log($"[CraftingTable] 이미 합성된 파츠입니다: {partItem.name}");
+            return;
+        }
+        
+        // 타격 횟수 증가
+        if (!partHitCounts.ContainsKey(hitTransform))
+        {
+            partHitCounts[hitTransform] = 0;
+        }
+        
+        partHitCounts[hitTransform]++;
+        int currentHits = partHitCounts[hitTransform];
+        
+        Debug.Log($"[CraftingTable] 파츠 '{partItem.name}' 타격됨 ({currentHits}/{requiredHitsPerPart})");
+        
+        // 필요한 타격 횟수에 도달하면 파츠 합성
+        if (currentHits >= requiredHitsPerPart)
+        {
+            Debug.Log($"[CraftingTable] 파츠 '{partItem.name}' 단조 완료!");
+            
+            // 파츠 합성
+            CombineSinglePart(partItem);
+        }
+    }
+    
+    // 단일 파츠 합성
+    private void CombineSinglePart(ItemComponent part)
+    {
+        if (currentBlade == null || part == null) return;
+        
+        // 블레이드에 파츠 스탯 추가
+        currentBlade.AddStatsFrom(part);
+        
+        // 파츠의 Rigidbody 제거 (콜라이더는 유지)
+        if (part.TryGetComponent<Rigidbody>(out Rigidbody rb))
+        {
+            Destroy(rb);
+        }
+        
+        // 합성 완료 표시
+        part.isPolished = true;
+        part.canCombine = false;
+        
+        Debug.Log($"[CraftingTable] 파츠 '{part.name}'가 '{currentBlade.name}'에 합성되었습니다.");
     }
 
     private void Update()
@@ -192,6 +256,22 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
         {
             FinalizeAttachment();
         }
+        
+        // ESC 키로 작업 취소
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            CancelEditing();
+        }
+    }
+    
+    // 작업 취소
+    private void CancelEditing()
+    {
+        if (!isEditing) return;
+        
+        Debug.Log("작업 취소");
+        isEditing = false;
+        SwitchToMainCamera();
     }
 
     private void FinalizeAttachment()

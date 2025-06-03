@@ -65,12 +65,6 @@ public class CraftingTable : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // HammerHead는 이제 Raycast 기반으로만 처리 (무시)
-        if (other.gameObject.name == "HammerHead")
-        {
-            return;
-        }
-
         // 2) 플레이어가 들고 있거나 장착한 아이템(UI/Detector에서 camera 자식으로 붙임)은 무시
         var ctrl = ItemInteractionController.Instance;
         if (ctrl != null && other.transform.IsChildOf(ctrl.playerCamera))
@@ -117,10 +111,10 @@ if (currentBlade == null && item.partsType == PartsType.Blade && item.canCombine
     currentBlade.transform.SetParent(snapPoint, worldPositionStays: true); // 💡 위치 보존
 
     currentBlade.transform
-        .DOLocalMove(Vector3.zero, 0.2f)
+        .DOLocalMove(Vector3.zero, 0.1f)
         .SetEase(Ease.OutSine);
     currentBlade.transform
-        .DOLocalRotate(Vector3.zero, 0.2f)
+        .DOLocalRotate(Vector3.zero, 0.1f)
         .SetEase(Ease.OutSine);
 
     // Rigidbody 설정은 그대로
@@ -141,20 +135,21 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
     Debug.Log($"{LOG_PREFIX} AttachItem: 파츠 '{item.name}' 배치 시작 (타입: {item.partsType})");
     currentPart = item;
 
-    // 블레이드의 자식으로 바로 넣지 않고 partsHolder에 임시 배치
+    // XZ 위치는 유지하되 Y만 조정
+    Vector3 worldPos = item.transform.position;
+    float bladeYPos = currentBlade.transform.position.y;
+    float yOffset = 0.02f; // 블레이드 위에 약간 떠 있도록 오프셋
+    
+    // partsHolder의 자식으로 배치 (합성 전까지 이 상태 유지)
     currentPart.transform.SetParent(partsHolder, worldPositionStays: true);
     Debug.Log($"{LOG_PREFIX} AttachItem: 파츠가 partsHolder의 자식으로 설정됨");
-
-    // 블레이드 주변에 배치하기 위해 블레이드 기준 위치 계산
-    Vector3 bladePosition = currentBlade.transform.position;
-    Vector3 targetPosition = bladePosition + new Vector3(0, 0, 0.2f); // 블레이드 위에 약간 떠 있게 배치
     
-    currentPart.transform
-        .DOMove(targetPosition, 0.2f)
-        .SetEase(Ease.OutSine);
-    currentPart.transform
-        .DOLocalRotate(Vector3.zero, 0.2f)
-        .SetEase(Ease.OutSine);
+    // XZ위치는 유지하고 Y위치만 조정
+    Vector3 targetPos = new Vector3(worldPos.x, bladeYPos + yOffset, worldPos.z);
+    currentPart.transform.DOMove(targetPos, 0.2f).SetEase(Ease.OutSine);
+    currentPart.transform.DOLocalRotate(Vector3.zero, 0.2f).SetEase(Ease.OutSine);
+    
+    Debug.Log($"{LOG_PREFIX} AttachItem: 파츠 위치 설정 - 원래={worldPos}, 목표={targetPos}");
 
     if (currentPart.partsType != PartsType.Blade && currentPart.TryGetComponent<Rigidbody>(out Rigidbody partRb))
     {
@@ -191,8 +186,17 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
             return;
         }
         
-        // 파츠 컴포넌트 확인
+        // 파츠 컴포넌트 확인 - 직접 또는 부모에서 검색
         ItemComponent partItem = hitTransform.GetComponent<ItemComponent>();
+        if (partItem == null)
+        {
+            partItem = hitTransform.GetComponentInParent<ItemComponent>();
+            if (partItem != null)
+            {
+                Debug.Log($"{LOG_PREFIX} HandleHammerHit: 부모에서 파츠 '{partItem.name}' 발견");
+            }
+        }
+        
         if (partItem == null)
         {
             Debug.LogWarning($"{LOG_PREFIX} HandleHammerHit: {hitTransform.name}에 ItemComponent가 없습니다!");
@@ -224,6 +228,7 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
         if (!partHitCounts.ContainsKey(hitTransform))
         {
             partHitCounts[hitTransform] = 0;
+            Debug.Log($"{LOG_PREFIX} HandleHammerHit: 새로운 파츠 타격 카운트 초기화 - {hitTransform.name}");
         }
         
         partHitCounts[hitTransform]++;
@@ -238,6 +243,9 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
             
             // 파츠 합성
             CombineSinglePart(partItem);
+            
+            // 타격 카운트 초기화
+            partHitCounts.Remove(hitTransform);
         }
     }
     
@@ -255,19 +263,23 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
         // 블레이드에 파츠 스탯 추가
         currentBlade.AddStatsFrom(part);
         
-        // 파츠를 블레이드의 자식으로 이동 (합성 완료된 파츠만 블레이드에 부착)
+        // 파츠를 블레이드의 자식으로 이동 (합성 시점에 부모-자식 관계 설정)
         part.transform.SetParent(currentBlade.transform);
         Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠가 블레이드의 자식으로 설정됨");
         
         // 파츠 위치와 회전을 유지하기 위해 DOTween 사용
-        part.transform.DOMove(worldPosition, 0.2f).SetEase(Ease.OutQuad);
-        part.transform.DORotateQuaternion(worldRotation, 0.2f).SetEase(Ease.OutQuad)
+        part.transform.DOMove(worldPosition, 0.05f).SetEase(Ease.OutQuad);
+        part.transform.DORotateQuaternion(worldRotation, 0.05f).SetEase(Ease.OutQuad)
             .OnComplete(() => {
-                // 애니메이션 완료 후 Y 위치를 0으로 조정
-                Vector3 localPos = part.transform.localPosition;
-                localPos.y = 0;
-                part.transform.localPosition = localPos;
-                Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠 위치 조정 완료 - local={localPos}");
+                // 애니메이션 완료 후 Y 위치를 부드럽게 0으로 조정
+                Vector3 currentLocalPos = part.transform.localPosition;
+                Vector3 targetLocalPos = new Vector3(currentLocalPos.x, 0, currentLocalPos.z);
+                
+                part.transform.DOLocalMove(targetLocalPos, 0.05f)
+                    .SetEase(Ease.OutQuad)
+                    .OnComplete(() => {
+                        Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠 Y축 조정 완료 - local={part.transform.localPosition}");
+                    });
             });
         
         // 파츠의 Rigidbody 제거 (콜라이더는 유지)
@@ -297,10 +309,11 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
             // 이동 전 위치
             Vector3 oldPos = currentPart.transform.localPosition;
             
+            // Y값 유지하면서 이동
             Vector3 newPos = currentPart.transform.localPosition + new Vector3(moveX, 0, moveZ);
             float clampedX = Mathf.Clamp(newPos.x, -0.4f, 0.4f);
             float clampedZ = Mathf.Clamp(newPos.z, -1f, 1f);
-            currentPart.transform.localPosition = new Vector3(clampedX, 0, clampedZ);
+            currentPart.transform.localPosition = new Vector3(clampedX, oldPos.y, clampedZ);
             
             Debug.Log($"{LOG_PREFIX} Update: 파츠 이동 - {oldPos} → {currentPart.transform.localPosition}, 입력={moveX:F3},{moveZ:F3}");
         }
@@ -344,16 +357,19 @@ else if (currentBlade != null && item.partsType != PartsType.None && item.weapon
             return;
         }
 
-        // 위치 확정 기록
+        // 위치 확정 기록 (현재 위치에서 Y 값만 0으로 설정)
         Vector3 finalLocalPos = currentPart.transform.localPosition;
-        Debug.Log($"{LOG_PREFIX} FinalizeAttachment: 파츠 위치 확정 - local={finalLocalPos}");
+        Vector3 finalWorldPos = currentPart.transform.position;
+        Debug.Log($"{LOG_PREFIX} FinalizeAttachment: 파츠 위치 확정 - local={finalLocalPos}, world={finalWorldPos}");
         
-        currentPart.transform.SetParent(currentBlade.transform);
-        Debug.Log($"{LOG_PREFIX} FinalizeAttachment: 파츠가 블레이드의 자식으로 설정됨");
+        // 파츠는 여전히 partsHolder의 자식으로 유지 (Blade 자식으로 설정하지 않음)
+        // 합성(망치질) 완료 후에만 블레이드 자식으로 이동
         
+        // 현재 위치만 유지하고 편집 모드 종료
         currentPart = null;
         isEditing = false;
 
         SwitchToMainCamera();
+        Debug.Log($"{LOG_PREFIX} FinalizeAttachment: 파츠 위치 확정 완료, 망치로 타격하여 합성하세요");
     }
 }

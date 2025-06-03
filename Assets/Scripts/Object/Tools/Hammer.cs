@@ -85,11 +85,23 @@ public class Hammer : Tool
                 // 타격된 오브젝트가 블레이드 자신이거나 그 자식인지 확인
                 if (hitTransform == table.currentBlade.transform || hitTransform.IsChildOf(table.currentBlade.transform))
                 {
+                    Debug.Log($"{LOG_PREFIX} FindCraftingTable: 블레이드 계층에서 발견");
+                    return table;
+                }
+            }
+            
+            // partsHolder의 자식들도 확인
+            if (table.partsHolder != null)
+            {
+                if (hitTransform.IsChildOf(table.partsHolder))
+                {
+                    Debug.Log($"{LOG_PREFIX} FindCraftingTable: partsHolder 계층에서 발견");
                     return table;
                 }
             }
         }
         
+        Debug.Log($"{LOG_PREFIX} FindCraftingTable: CraftingTable을 찾을 수 없음");
         return null;
     }
 

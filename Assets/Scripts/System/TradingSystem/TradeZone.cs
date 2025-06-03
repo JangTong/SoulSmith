@@ -126,7 +126,7 @@ public class TradeZone : MonoBehaviour
                 var hit = overlapResults[i];
                 if (!hit.CompareTag("Items")) continue;
                 
-                placedItem = hit.GetComponent<ItemComponent>();
+            placedItem = hit.GetComponent<ItemComponent>(); 
                 if (placedItem != null)
                 {
                     Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 개별 파츠에서 아이템 '{placedItem.itemName}' 발견");

@@ -25,6 +25,7 @@ public class NPCScheduleManager : MonoBehaviour
     [SerializeField] private string currentLocation = "";
     [SerializeField] private NPCBehaviorType currentBehavior = NPCBehaviorType.Idle;
     [SerializeField] private bool isExecutingSchedule = false;
+    [SerializeField] private bool pauseSchedule = false; // 스케줄 일시 정지 여부
     
     // 컴포넌트 참조
     private NPCBase npcBase;
@@ -111,6 +112,16 @@ public class NPCScheduleManager : MonoBehaviour
     private void OnTimeUpdated(float gameTimer)
     {
         if (!enableSchedule || schedule == null || TimeManager.Instance == null) return;
+        
+        // 스케줄이 일시 정지된 경우 업데이트 건너뛰기
+        if (pauseSchedule)
+        {
+            if (debugSchedule)
+            {
+                Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 스케줄 일시 정지 중 - 시간 업데이트 건너뛰기");
+            }
+            return;
+        }
         
         // 업데이트 간격 체크
         if (Time.time - lastUpdateTime < updateInterval) return;
@@ -237,11 +248,34 @@ public class NPCScheduleManager : MonoBehaviour
         if (navAgent == null) yield break;
         
         targetPosition = entry.GetTargetPosition();
+        
+        // 이미 목적지 근처에 있는지 확인
+        float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
+        if (distanceToTarget <= arrivalTolerance)
+        {
+            if (debugSchedule)
+            {
+                Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 이미 목적지 근처에 있음: {entry.GetLocationDisplayName()} (거리: {distanceToTarget:F2}m) - 이동 건너뛰기");
+            }
+            
+            // 애니메이션만 설정하고 이동은 건너뛰기
+            if (useAnimationController && animationController != null)
+            {
+                animationController.SetMoving(false);
+            }
+            yield break;
+        }
+        
         isMovingToTarget = true;
         
         // NavMeshAgent 설정
         navAgent.speed = entry.moveSpeed;
         navAgent.stoppingDistance = entry.stoppingDistance;
+        navAgent.isStopped = false; // 이동 시작 전 정지 해제
+        
+        // 부드러운 이동을 위한 설정
+        navAgent.autoBraking = false; // 목적지 근처에서 급격한 감속 방지
+        navAgent.acceleration = Mathf.Min(navAgent.acceleration, 4f); // 가속도 제한
         
         // 애니메이션 설정 (이동 시작)
         if (useAnimationController && animationController != null)
@@ -270,6 +304,13 @@ public class NPCScheduleManager : MonoBehaviour
         // 도착할 때까지 대기
         while (isMovingToTarget)
         {
+            // 스케줄이 일시 정지된 경우 대기
+            if (pauseSchedule)
+            {
+                yield return null;
+                continue;
+            }
+            
             if (navAgent.pathPending)
             {
                 yield return null;
@@ -284,6 +325,11 @@ public class NPCScheduleManager : MonoBehaviour
                 hasArrivedAtDestination = true;
                 isMovingToTarget = false;
                 
+                // NavMeshAgent 완전 정지
+                navAgent.isStopped = true;
+                navAgent.ResetPath();
+                navAgent.autoBraking = true; // 자동 브레이킹 복구
+                
                 // 애니메이션 설정 (이동 종료)
                 if (useAnimationController && animationController != null)
                 {
@@ -292,7 +338,7 @@ public class NPCScheduleManager : MonoBehaviour
                 
                 if (debugSchedule)
                 {
-                    Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 목적지 도착: {entry.GetLocationDisplayName()}");
+                    Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 목적지 도착: {entry.GetLocationDisplayName()} - NavAgent 정지됨");
                 }
                 
                 break;
@@ -477,6 +523,68 @@ public class NPCScheduleManager : MonoBehaviour
                  $"- Moving: {status.isMoving}\n" +
                  $"- Arrived: {status.hasArrived}\n" +
                  $"- Next: {nextInfo}");
+    }
+
+    /// <summary>
+    /// 스케줄 일시 정지 (대화 등의 상호작용 중)
+    /// </summary>
+    public void PauseSchedule()
+    {
+        if (pauseSchedule) return;
+        
+        pauseSchedule = true;
+        
+        // 진행 중인 이동 정지
+        if (isMovingToTarget && navAgent != null)
+        {
+            navAgent.isStopped = true;
+        }
+        
+        // 실행 중인 코루틴 일시 정지는 하지 않고, UpdateWalkingState에서 체크하도록 함
+        
+        if (debugSchedule)
+        {
+            Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 스케줄 일시 정지 (대화 중)");
+        }
+    }
+
+    /// <summary>
+    /// 스케줄 재개 (상호작용 종료 후)
+    /// </summary>
+    public void ResumeSchedule()
+    {
+        if (!pauseSchedule) return;
+        
+        pauseSchedule = false;
+        
+        // 이동이 진행 중이었다면 재개
+        if (isMovingToTarget && navAgent != null)
+        {
+            navAgent.isStopped = false;
+        }
+        
+        // 대화 중에 시간이 흘렀을 수 있으므로 현재 시간에 맞는 스케줄로 즉시 업데이트
+        if (enableSchedule && schedule != null && TimeManager.Instance != null)
+        {
+            int currentHour = TimeManager.Instance.hours;
+            int currentMinute = TimeManager.Instance.minutes;
+            ScheduleEntry newEntry = schedule.GetCurrentScheduleEntry(currentHour, currentMinute);
+            
+            // 현재 스케줄과 다르면 새로운 스케줄 실행
+            if (newEntry != currentEntry)
+            {
+                if (debugSchedule)
+                {
+                    Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 스케줄 재개 시 시간 변경 감지 - 새로운 스케줄 실행: {newEntry?.GetTimeString()} - {newEntry?.locationName}");
+                }
+                ExecuteScheduleEntry(newEntry);
+            }
+        }
+        
+        if (debugSchedule)
+        {
+            Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 스케줄 재개 (대화 종료)");
+        }
     }
 }
 

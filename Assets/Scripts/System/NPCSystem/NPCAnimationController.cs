@@ -15,7 +15,7 @@ public class NPCAnimationController : MonoBehaviour
     [Tooltip("NavMeshAgent의 이동을 자동으로 감지해서 Walking 애니메이션 재생")]
     public bool autoDetectWalking = true;
     [Tooltip("이동 감지를 위한 최소 속도 임계값")]
-    public float walkingSpeedThreshold = 0.1f;
+    public float walkingSpeedThreshold = 0.05f;
     [Tooltip("Walking 상태 업데이트 주기 (초)")]
     public float walkingUpdateInterval = 0.1f;
     
@@ -125,9 +125,19 @@ public class NPCAnimationController : MonoBehaviour
     {
         if (navAgent == null || !navAgent.isOnNavMesh) return false;
         
-        return navAgent.velocity.magnitude > walkingSpeedThreshold && 
-               navAgent.hasPath && 
-               navAgent.remainingDistance > navAgent.stoppingDistance;
+        // 명시적으로 정지된 경우
+        if (navAgent.isStopped) return false;
+        
+        // 경로가 있고 실제로 움직이고 있으면 이동 중
+        bool hasPath = navAgent.hasPath && !navAgent.pathPending;
+        bool isActuallyMoving = navAgent.velocity.magnitude > walkingSpeedThreshold;
+        
+        if (showDebugLogs && (hasPath || isActuallyMoving))
+        {
+            Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 이동 체크: HasPath={hasPath}, Velocity={navAgent.velocity.magnitude:F3}, Threshold={walkingSpeedThreshold}");
+        }
+        
+        return hasPath || isActuallyMoving;
     }
 
     /// <summary>
@@ -159,7 +169,27 @@ public class NPCAnimationController : MonoBehaviour
     {
         if (!isAutoWalking) return;
         
+        if (showDebugLogs)
+        {
+            string agentInfo = navAgent != null ? 
+                $"NavAgent - isStopped: {navAgent.isStopped}, hasPath: {navAgent.hasPath}, velocity: {navAgent.velocity.magnitude:F3}" : 
+                "No NavAgent";
+            Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 자동 Walking 종료 - {agentInfo}");
+        }
+        
         isAutoWalking = false;
+        
+        // NavMeshAgent가 여전히 이동 중이라면 정지
+        if (navAgent != null && navAgent.isOnNavMesh && !navAgent.isStopped)
+        {
+            // 단, 스케줄 시스템에서 관리하는 이동이 아닌 경우에만 정지
+            // (다른 시스템에서 제어하는 이동을 방해하지 않기 위해)
+            if (navAgent.velocity.magnitude < walkingSpeedThreshold)
+            {
+                navAgent.isStopped = true;
+                navAgent.ResetPath();
+            }
+        }
         
         // 이전 행동으로 복귀
         SetBehavior(behaviorBeforeWalking);
@@ -169,7 +199,7 @@ public class NPCAnimationController : MonoBehaviour
         
         if (showDebugLogs)
         {
-            Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 자동 Walking 종료 (복귀 행동: {behaviorBeforeWalking})");
+            Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 자동 Walking 종료 완료 (복귀 행동: {behaviorBeforeWalking})");
         }
     }
 
@@ -208,19 +238,24 @@ public class NPCAnimationController : MonoBehaviour
 
         currentBehavior = behaviorType;
         
-        if (behaviorToAnimation.TryGetValue(behaviorType, out string animationState))
+        // 1순위: Behavior 파라미터 기반 전환 (권장)
+        if (HasParameter(behaviorParameterName))
         {
-            SetAnimationState(animationState);
-            
-            // Behavior 파라미터가 있으면 설정
-            if (HasParameter(behaviorParameterName))
-            {
-                animator.SetInteger(behaviorParameterName, (int)behaviorType);
-            }
+            animator.SetInteger(behaviorParameterName, (int)behaviorType);
             
             if (showDebugLogs)
             {
-                Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 행동 변경: {behaviorType} -> 애니메이션: {animationState}");
+                Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 행동 변경 (파라미터): {behaviorType} -> Behavior = {(int)behaviorType}");
+            }
+        }
+        // 2순위: 직접 애니메이션 상태 변경 (fallback)
+        else if (behaviorToAnimation.TryGetValue(behaviorType, out string animationState))
+        {
+            SetAnimationState(animationState);
+            
+            if (showDebugLogs)
+            {
+                Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 행동 변경 (직접): {behaviorType} -> 애니메이션: {animationState}");
             }
         }
         else
@@ -283,14 +318,26 @@ public class NPCAnimationController : MonoBehaviour
     {
         if (!enableAnimations || animator == null || string.IsNullOrEmpty(stateName)) return;
 
-        if (currentAnimationState == stateName) return;
+        if (currentAnimationState == stateName) 
+        {
+            // 이미 같은 상태가 재생 중이면 다시 시작하지 않음 (루프 보호)
+            return;
+        }
 
         try
         {
             // 상태가 존재하는지 확인
             if (HasState(stateName))
             {
-                animator.Play(stateName, 0, 0f);
+                // 현재 재생 중인 상태와 다른 경우에만 Play 호출
+                AnimatorStateInfo currentStateInfo = animator.GetCurrentAnimatorStateInfo(0);
+                int stateHash = Animator.StringToHash(stateName);
+                
+                if (!currentStateInfo.IsName(stateName) || !currentStateInfo.loop)
+                {
+                    animator.Play(stateName, 0, 0f);
+                }
+                
                 currentAnimationState = stateName;
                 
                 if (showDebugLogs)

@@ -20,12 +20,12 @@ MonoBehaviour:
     targetLocation: {fileID: 0}
     locationTag: 
     locationName: ShopCounter
-    fallbackPosition: {x: -5.103511, y: 1.3853483, z: -52.317272}
+    fallbackPosition: {x: 0, y: 0, z: 0}
     positionOffset: {x: 0, y: 0, z: 0}
     behaviorType: 0
     animationState: isIdle
     loopAnimation: 1
-    moveSpeed: 3.5
+    moveSpeed: 1.5
     stoppingDistance: 0
     waitTimeBeforeNext: 0
     shouldLookAround: 0
@@ -33,7 +33,7 @@ MonoBehaviour:
   enableSchedule: 1
   loopSchedule: 1
   defaultEntry:
-    hour: 9
+    hour: 0
     minute: 0
     targetLocation: {fileID: 0}
     locationTag: 

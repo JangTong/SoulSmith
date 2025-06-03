@@ -35,6 +35,9 @@ public class CustomerNPC : ScheduledNPC
     {
         Debug.Log($"{LOG_PREFIX} ({NPCName}) CustomerNPC Interact 시도.");
 
+        // 모든 상호작용에서 스케줄 즉시 일시 정지
+        PauseScheduleForInteraction();
+
         // 거래 요청이 있는 경우 거래 우선 처리
         if (ShouldProcessTrade())
         {
@@ -43,7 +46,16 @@ public class CustomerNPC : ScheduledNPC
         }
         
         // 거래 요청이 없거나 이미 완료된 경우 일반 상호작용 처리
-        base.Interact(); // ScheduledNPC의 Interact 호출
+        if (dialogueData != null)
+        {
+            // NPCBase와 동일한 방식으로 대화 실행하되 콜백 추가
+            DialogueManager.Instance.PlayGeneralDialogue(dialogueData, ResumeScheduleAfterInteraction);
+        }
+        else
+        {
+            // 대화 데이터가 없으면 즉시 재개
+            ResumeScheduleAfterInteraction();
+        }
     }
 
     /// <summary>
@@ -96,7 +108,31 @@ public class CustomerNPC : ScheduledNPC
             {
                 new DialogueLine { speaker = NPCName, text = "죄송해요, 지금은 거래할 수 없네요." }
             };
-            DialogueManager.Instance.PlayGeneralDialogue(noTradeDialogue);
+            DialogueManager.Instance.PlayGeneralDialogue(noTradeDialogue, ResumeScheduleAfterInteraction);
+        }
+    }
+
+    /// <summary>
+    /// 상호작용을 위한 스케줄 일시 정지
+    /// </summary>
+    private void PauseScheduleForInteraction()
+    {
+        var scheduleManager = GetComponent<NPCScheduleManager>();
+        if (scheduleManager != null)
+        {
+            scheduleManager.PauseSchedule();
+        }
+    }
+
+    /// <summary>
+    /// 상호작용 후 스케줄 재개
+    /// </summary>
+    private void ResumeScheduleAfterInteraction()
+    {
+        var scheduleManager = GetComponent<NPCScheduleManager>();
+        if (scheduleManager != null)
+        {
+            scheduleManager.ResumeSchedule();
         }
     }
 

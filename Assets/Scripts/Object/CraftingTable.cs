@@ -16,8 +16,21 @@ public class CraftingTable : MonoBehaviour
     public Transform cameraCraftingViewPoint;
     public float cameraMoveDuration = 0.5f;
 
-    [Header("Settings")]
-    public float moveSpeed;
+    [Header("Movement Settings")]
+    public float moveSpeed = 1f;
+    public float moveRangeX = 0.4f; // X축 이동 범위 (-moveRangeX ~ +moveRangeX)
+    public float moveRangeZ = 1f;   // Z축 이동 범위 (-moveRangeZ ~ +moveRangeZ)
+    
+    [Header("Position Settings")]
+    public float partYOffset = 0.02f; // 파츠가 블레이드 위에 떠있는 높이
+    public float bladeDetectionDistance = 5f; // 블레이드 이탈 감지 거리
+    
+    [Header("Animation Settings")]
+    public float bladeAnimationDuration = 0.1f; // 블레이드 배치 애니메이션 시간
+    public float partAnimationDuration = 0.2f;  // 파츠 배치 애니메이션 시간
+    public float combineAnimationDuration = 0.05f; // 합성 애니메이션 시간
+    
+    [Header("Current State")]
     public ItemComponent currentBlade;
     public ItemComponent currentPart;
     private bool isEditing = false;
@@ -27,6 +40,10 @@ public class CraftingTable : MonoBehaviour
     
     [Header("Forging Settings")]
     public int requiredHitsPerPart = 3; // 각 파츠당 필요한 타격 횟수
+    
+    // 간단한 최적화 변수들
+    private float lastBladeCheckTime = 0f;
+    private Vector3 tempPos = Vector3.zero; // Vector3 재사용
     
     // 파츠별 타격 횟수 추적
     private Dictionary<Transform, int> partHitCounts = new Dictionary<Transform, int>();
@@ -123,18 +140,22 @@ public class CraftingTable : MonoBehaviour
             // 블레이드 배치 중 상태 설정
             isBladePositioning = true;
             
+            // 현재 로컬 위치에서 XZ는 유지하고 Y만 0으로 설정
+            Vector3 currentLocalPos = currentBlade.transform.localPosition;
+            Vector3 targetLocalPos = new Vector3(currentLocalPos.x, 0f, currentLocalPos.z);
+            
             // 배치 상태 디버그 로그
-            Debug.Log($"{LOG_PREFIX} AttachItem: 블레이드 DOTween 시작 - 현재 LocalPos: {currentBlade.transform.localPosition}");
+            Debug.Log($"{LOG_PREFIX} AttachItem: 블레이드 DOTween 시작 - 현재 LocalPos: {currentLocalPos}, 목표: {targetLocalPos}");
 
             currentBlade.transform
-                .DOLocalMove(Vector3.zero, 0.1f)
+                .DOLocalMove(targetLocalPos, bladeAnimationDuration)
                 .SetEase(Ease.OutSine)
                 .OnComplete(() => {
                     isBladePositioning = false; // 애니메이션 완료 후 상태 해제
                     Debug.Log($"{LOG_PREFIX} AttachItem: 블레이드 배치 완료");
                 });
             currentBlade.transform
-                .DOLocalRotate(Vector3.zero, 0.1f)
+                .DOLocalRotate(Vector3.zero, bladeAnimationDuration)
                 .SetEase(Ease.OutSine);
 
             // Rigidbody 설정은 그대로
@@ -154,86 +175,58 @@ public class CraftingTable : MonoBehaviour
         {
             // 이미 블레이드가 있는 상태에서 같은 무기 타입의 블레이드가 들어오면 파츠로 취급
             Debug.Log($"{LOG_PREFIX} AttachItem: 블레이드 '{item.name}'를 파츠로 취급하여 배치 시작");
-            currentPart = item;
-
-            // XZ 위치는 유지하되 Y만 조정
-            Vector3 worldPos = item.transform.position;
-            float bladeYPos = currentBlade.transform.position.y;
-            float yOffset = 0.02f; // 블레이드 위에 약간 떠 있도록 오프셋
-            
-            // partsHolder의 자식으로 배치 (합성 전까지 이 상태 유지)
-            currentPart.transform.SetParent(partsHolder, worldPositionStays: true);
-            Debug.Log($"{LOG_PREFIX} AttachItem: 블레이드(파츠)가 partsHolder의 자식으로 설정됨");
-            
-            // XZ위치는 유지하고 Y위치만 조정
-            Vector3 targetPos = new Vector3(worldPos.x, bladeYPos + yOffset, worldPos.z);
-            currentPart.transform.DOMove(targetPos, 0.2f).SetEase(Ease.OutSine);
-            currentPart.transform.DOLocalRotate(Vector3.zero, 0.2f).SetEase(Ease.OutSine);
-            
-            Debug.Log($"{LOG_PREFIX} AttachItem: 블레이드(파츠) 위치 설정 - 원래={worldPos}, 목표={targetPos}");
-
-            if (currentPart.TryGetComponent<Rigidbody>(out Rigidbody partRb))
-            {
-                partRb.isKinematic = true;
-            }
-
-            Collider partCollider = currentPart.GetComponent<Collider>();
-            Collider bladeCollider = currentBlade.GetComponent<Collider>();
-            if (partCollider != null && bladeCollider != null)
-            {
-                Physics.IgnoreCollision(partCollider, bladeCollider, true);
-                Debug.Log($"{LOG_PREFIX} AttachItem: 블레이드(파츠)-블레이드 콜라이더 충돌 무시됨");
-            }
-            
-            // 파츠 타격 횟수 초기화
-            partHitCounts[currentPart.transform] = 0;
-
-            isEditing = true;
-            Debug.Log($"{LOG_PREFIX} AttachItem: 블레이드(파츠) 배치 완료, 이동 가능 상태");
+            SetupPartItem(item, "블레이드(파츠)");
         }
         else if (currentBlade != null && item.partsType != PartsType.None && item.weaponType == currentBlade.weaponType && item.canCombine)
         {
             Debug.Log($"{LOG_PREFIX} AttachItem: 파츠 '{item.name}' 배치 시작 (타입: {item.partsType})");
-            currentPart = item;
-
-            // XZ 위치는 유지하되 Y만 조정
-            Vector3 worldPos = item.transform.position;
-            float bladeYPos = currentBlade.transform.position.y;
-            float yOffset = 0.02f; // 블레이드 위에 약간 떠 있도록 오프셋
-            
-            // partsHolder의 자식으로 배치 (합성 전까지 이 상태 유지)
-            currentPart.transform.SetParent(partsHolder, worldPositionStays: true);
-            Debug.Log($"{LOG_PREFIX} AttachItem: 파츠가 partsHolder의 자식으로 설정됨");
-            
-            // XZ위치는 유지하고 Y위치만 조정
-            Vector3 targetPos = new Vector3(worldPos.x, bladeYPos + yOffset, worldPos.z);
-            currentPart.transform.DOMove(targetPos, 0.2f).SetEase(Ease.OutSine);
-            currentPart.transform.DOLocalRotate(Vector3.zero, 0.2f).SetEase(Ease.OutSine);
-            
-            Debug.Log($"{LOG_PREFIX} AttachItem: 파츠 위치 설정 - 원래={worldPos}, 목표={targetPos}");
-
-            if (currentPart.partsType != PartsType.Blade && currentPart.TryGetComponent<Rigidbody>(out Rigidbody partRb))
-            {
-                partRb.isKinematic = true;
-            }
-
-            Collider partCollider = currentPart.GetComponent<Collider>();
-            Collider bladeCollider = currentBlade.GetComponent<Collider>();
-            if (partCollider != null && bladeCollider != null)
-            {
-                Physics.IgnoreCollision(partCollider, bladeCollider, true);
-                Debug.Log($"{LOG_PREFIX} AttachItem: 파츠-블레이드 콜라이더 충돌 무시됨");
-            }
-            
-            // 파츠 타격 횟수 초기화
-            partHitCounts[currentPart.transform] = 0;
-
-            isEditing = true;
-            Debug.Log($"{LOG_PREFIX} AttachItem: 파츠 배치 완료, 이동 가능 상태");
+            SetupPartItem(item, "파츠");
         }
         else return;
 
         SwitchToTableCamera();
+    }
+    
+    // 파츠 설정 공통 함수
+    private void SetupPartItem(ItemComponent item, string itemTypeStr)
+    {
+        currentPart = item;
+
+        // XZ 위치는 유지하되 Y만 조정
+        Vector3 worldPos = item.transform.position;
+        float bladeYPos = currentBlade.transform.position.y;
+        
+        // partsHolder의 자식으로 배치
+        currentPart.transform.SetParent(partsHolder, worldPositionStays: true);
+        Debug.Log($"{LOG_PREFIX} AttachItem: {itemTypeStr}가 partsHolder의 자식으로 설정됨");
+        
+        // XZ위치는 유지하고 Y위치만 조정
+        Vector3 targetPos = new Vector3(worldPos.x, bladeYPos + partYOffset, worldPos.z);
+        currentPart.transform.DOMove(targetPos, partAnimationDuration).SetEase(Ease.OutSine);
+        currentPart.transform.DOLocalRotate(Vector3.zero, partAnimationDuration).SetEase(Ease.OutSine);
+        
+        Debug.Log($"{LOG_PREFIX} AttachItem: {itemTypeStr} 위치 설정 - 원래={worldPos}, 목표={targetPos}");
+
+        // Rigidbody 설정
+        if (currentPart.TryGetComponent<Rigidbody>(out Rigidbody partRb))
+        {
+            partRb.isKinematic = true;
+        }
+
+        // 콜라이더 충돌 무시
+        Collider partCollider = currentPart.GetComponent<Collider>();
+        Collider bladeCollider = currentBlade.GetComponent<Collider>();
+        if (partCollider != null && bladeCollider != null)
+        {
+            Physics.IgnoreCollision(partCollider, bladeCollider, true);
+            Debug.Log($"{LOG_PREFIX} AttachItem: {itemTypeStr}-블레이드 콜라이더 충돌 무시됨");
+        }
+        
+        // 파츠 타격 횟수 초기화
+        partHitCounts[currentPart.transform] = 0;
+
+        isEditing = true;
+        Debug.Log($"{LOG_PREFIX} AttachItem: {itemTypeStr} 배치 완료, 이동 가능 상태");
     }
     
     // Raycast 기반 망치 타격 처리 함수 - Hammer.cs에서 호출됨
@@ -297,17 +290,49 @@ public class CraftingTable : MonoBehaviour
         
         Debug.Log($"{LOG_PREFIX} HandleHammerHit: 파츠 '{partItem.name}' 타격됨 ({currentHits}/{requiredHitsPerPart})");
         
+        // 타격할 때마다 점진적으로 Y축 이동
+        ProcessProgressiveHammerHit(partItem, currentHits);
+        
         // 필요한 타격 횟수에 도달하면 파츠 합성
         if (currentHits >= requiredHitsPerPart)
         {
             Debug.Log($"{LOG_PREFIX} HandleHammerHit: 파츠 '{partItem.name}' 단조 완료!");
             
-            // 파츠 합성
+            // 파츠 합성 (Y축 조정 없이)
             CombineSinglePart(partItem);
             
             // 타격 카운트 초기화
             partHitCounts.Remove(hitTransform);
         }
+    }
+    
+    // 점진적 타격 처리 - 각 타격마다 Y축 이동
+    private void ProcessProgressiveHammerHit(ItemComponent partItem, int currentHits)
+    {
+        if (partItem == null || currentBlade == null) return;
+        
+        // 현재 블레이드의 Y 위치
+        float bladeYPos = currentBlade.transform.position.y;
+        
+        // 각 타격당 이동할 거리 계산
+        float movePerHit = partYOffset / requiredHitsPerPart;
+        
+        // 목표 Y 위치 계산 (블레이드 Y + 남은 오프셋)
+        float remainingOffset = partYOffset - (movePerHit * currentHits);
+        float targetY = bladeYPos + remainingOffset;
+        
+        // 현재 월드 위치 가져오기
+        Vector3 currentWorldPos = partItem.transform.position;
+        Vector3 targetWorldPos = new Vector3(currentWorldPos.x, targetY, currentWorldPos.z);
+        
+        Debug.Log($"{LOG_PREFIX} ProcessProgressiveHammerHit: 파츠 '{partItem.name}' 타격 {currentHits}회 - Y이동: {currentWorldPos.y:F3} → {targetY:F3} (이동거리: {movePerHit:F3})");
+        
+        // DOTween으로 부드럽게 이동
+        partItem.transform.DOMove(targetWorldPos, combineAnimationDuration * 2f)
+            .SetEase(Ease.OutBounce)
+            .OnComplete(() => {
+                Debug.Log($"{LOG_PREFIX} ProcessProgressiveHammerHit: 파츠 '{partItem.name}' Y축 이동 완료 - 현재 Y: {partItem.transform.position.y:F3}");
+            });
     }
     
     // 단일 파츠 합성
@@ -328,19 +353,11 @@ public class CraftingTable : MonoBehaviour
         part.transform.SetParent(currentBlade.transform);
         Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠가 블레이드의 자식으로 설정됨");
         
-        // 파츠 위치와 회전을 유지하기 위해 DOTween 사용
-        part.transform.DOMove(worldPosition, 0.05f).SetEase(Ease.OutQuad);
-        part.transform.DORotateQuaternion(worldRotation, 0.05f).SetEase(Ease.OutQuad)
+        // 파츠 위치와 회전을 현재 상태로 유지 (Y축 조정 없음)
+        part.transform.DOMove(worldPosition, combineAnimationDuration).SetEase(Ease.OutQuad);
+        part.transform.DORotateQuaternion(worldRotation, combineAnimationDuration).SetEase(Ease.OutQuad)
             .OnComplete(() => {
-                // 애니메이션 완료 후 Y 위치를 부드럽게 0으로 조정
-                Vector3 currentLocalPos = part.transform.localPosition;
-                Vector3 targetLocalPos = new Vector3(currentLocalPos.x, 0, currentLocalPos.z);
-                
-                part.transform.DOLocalMove(targetLocalPos, 0.05f)
-                    .SetEase(Ease.OutQuad)
-                    .OnComplete(() => {
-                        Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠 Y축 조정 완료 - local={part.transform.localPosition}");
-                    });
+                Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠 '{part.name}' 최종 합성 완료 - 위치: {part.transform.position}");
             });
         
         // 파츠의 Rigidbody 제거 (콜라이더는 유지)
@@ -359,8 +376,12 @@ public class CraftingTable : MonoBehaviour
 
     private void Update()
     {
-        // 블레이드 상태 체크 - 블레이드가 작업대를 벗어났는지 확인
-        CheckBladeStatus();
+        // 블레이드 상태 체크 - 0.1초마다만 체크 (간단한 최적화)
+        if (Time.time - lastBladeCheckTime > 0.1f)
+        {
+            CheckBladeStatus();
+            lastBladeCheckTime = Time.time;
+        }
         
         // 편집 모드일 때 블레이드나 파츠 이동 처리
         if (isEditing && (currentBlade != null || currentPart != null))
@@ -378,13 +399,15 @@ public class CraftingTable : MonoBehaviour
                 // 이동 전 위치
                 Vector3 oldPos = targetTransform.localPosition;
                 
-                // Y값 유지하면서 이동
-                Vector3 newPos = targetTransform.localPosition + new Vector3(moveX, 0, moveZ);
-                float clampedX = Mathf.Clamp(newPos.x, -0.4f, 0.4f);
-                float clampedZ = Mathf.Clamp(newPos.z, -1f, 1f);
-                targetTransform.localPosition = new Vector3(clampedX, oldPos.y, clampedZ);
+                // Y값 유지하면서 이동 (tempPos 재사용으로 GC 줄이기)
+                tempPos.Set(
+                    Mathf.Clamp(oldPos.x + moveX, -moveRangeX, moveRangeX),
+                    oldPos.y,
+                    Mathf.Clamp(oldPos.z + moveZ, -moveRangeZ, moveRangeZ)
+                );
+                targetTransform.localPosition = tempPos;
                 
-                Debug.Log($"{LOG_PREFIX} Update: {targetName} 이동 - {oldPos} → {targetTransform.localPosition}, 입력={moveX:F3},{moveZ:F3}");
+                Debug.Log($"{LOG_PREFIX} Update: {targetName} 이동 - {oldPos} → {tempPos}");
             }
         }
 
@@ -393,7 +416,7 @@ public class CraftingTable : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                Debug.Log($"{LOG_PREFIX} Update: Space 키 감지됨 - 위치 확정 (isEditing: {isEditing}, currentBlade: {currentBlade != null}, currentPart: {currentPart != null})");
+                Debug.Log($"{LOG_PREFIX} Update: Space 키 감지됨 - 위치 확정");
                 FinalizeAttachment();
             }
             
@@ -402,14 +425,6 @@ public class CraftingTable : MonoBehaviour
             {
                 Debug.Log($"{LOG_PREFIX} Update: ESC 키 감지됨 - 작업 취소");
                 CancelEditing();
-            }
-        }
-        else
-        {
-            // 편집 모드가 아닐 때 Space 키 눌렀는지 확인
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                Debug.Log($"{LOG_PREFIX} Update: Space 키 감지됨 - 편집 모드 아님 (isEditing: {isEditing})");
             }
         }
     }
@@ -422,19 +437,12 @@ public class CraftingTable : MonoBehaviour
         // 블레이드가 snapPoint의 자식인지 체크
         bool isChildOfSnapPoint = currentBlade.transform.IsChildOf(snapPoint);
         
-        // 거리 체크 (더 관대하게 5f로 설정)
-        float distance = Vector3.Distance(currentBlade.transform.position, snapPoint.position);
-        bool isTooFar = distance > 5f;
+        // 거리 체크 최적화 (sqrMagnitude 사용으로 sqrt 계산 제거)
+        float sqrDistance = (currentBlade.transform.position - snapPoint.position).sqrMagnitude;
+        float sqrDetectionDistance = bladeDetectionDistance * bladeDetectionDistance;
+        bool isTooFar = sqrDistance > sqrDetectionDistance;
         
-        // 디버그 로그
         if (!isChildOfSnapPoint || isTooFar)
-        {
-            Debug.Log($"{LOG_PREFIX} CheckBladeStatus: 블레이드 상태 - IsChild: {isChildOfSnapPoint}, Distance: {distance:F2}");
-        }
-        
-        bool isBladeDetached = !isChildOfSnapPoint || isTooFar;
-        
-        if (isBladeDetached)
         {
             Debug.LogWarning($"{LOG_PREFIX} CheckBladeStatus: 블레이드가 작업대를 벗어났습니다. 초기화합니다.");
             ResetCraftingTable();

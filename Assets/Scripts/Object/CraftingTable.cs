@@ -41,6 +41,14 @@ public class CraftingTable : MonoBehaviour
     [Header("Forging Settings")]
     public int requiredHitsPerPart = 3; // 각 파츠당 필요한 타격 횟수
     
+    [Header("Combine Effects")]
+    public ParticleSystem combineParticleEffect; // 합성 완료 파티클
+    public AudioClip[] combineSuccessSounds; // 합성 성공 사운드 배열
+    public float combineEffectDuration = 1f; // 이펙트 지속 시간
+    public Color combineGlowColor = Color.yellow; // 합성 시 발광 색상
+    public Color combineEmissionColor = Color.white; // 합성 시 Emission 색상
+    public float emissionIntensity = 3f; // Emission 강도 (HDR)
+    
     // 간단한 최적화 변수들
     private float lastBladeCheckTime = 0f;
     private Vector3 tempPos = Vector3.zero; // Vector3 재사용
@@ -290,24 +298,27 @@ public class CraftingTable : MonoBehaviour
         
         Debug.Log($"{LOG_PREFIX} HandleHammerHit: 파츠 '{partItem.name}' 타격됨 ({currentHits}/{requiredHitsPerPart})");
         
-        // 타격할 때마다 점진적으로 Y축 이동
-        ProcessProgressiveHammerHit(partItem, currentHits);
-        
-        // 필요한 타격 횟수에 도달하면 파츠 합성
+        // 필요한 타격 횟수에 도달하면 마지막 이동 후 합성
         if (currentHits >= requiredHitsPerPart)
         {
-            Debug.Log($"{LOG_PREFIX} HandleHammerHit: 파츠 '{partItem.name}' 단조 완료!");
+            Debug.Log($"{LOG_PREFIX} HandleHammerHit: 파츠 '{partItem.name}' 단조 완료! 최종 이동 후 합성 진행");
             
-            // 파츠 합성 (Y축 조정 없이)
-            CombineSinglePart(partItem);
-            
-            // 타격 카운트 초기화
-            partHitCounts.Remove(hitTransform);
+            // 마지막 Y축 이동 후 합성 진행
+            ProcessProgressiveHammerHit(partItem, currentHits, () => {
+                // Y축 이동 완료 후 콜백에서 합성 실행
+                CombineSinglePart(partItem);
+                partHitCounts.Remove(hitTransform);
+            });
+        }
+        else
+        {
+            // 일반 타격 시에는 Y축 이동만
+            ProcessProgressiveHammerHit(partItem, currentHits);
         }
     }
     
     // 점진적 타격 처리 - 각 타격마다 Y축 이동
-    private void ProcessProgressiveHammerHit(ItemComponent partItem, int currentHits)
+    private void ProcessProgressiveHammerHit(ItemComponent partItem, int currentHits, System.Action onComplete = null)
     {
         if (partItem == null || currentBlade == null) return;
         
@@ -332,6 +343,9 @@ public class CraftingTable : MonoBehaviour
             .SetEase(Ease.OutBounce)
             .OnComplete(() => {
                 Debug.Log($"{LOG_PREFIX} ProcessProgressiveHammerHit: 파츠 '{partItem.name}' Y축 이동 완료 - 현재 Y: {partItem.transform.position.y:F3}");
+                
+                // 완료 콜백이 있으면 실행 (마지막 타격일 때 합성 진행)
+                onComplete?.Invoke();
             });
     }
     
@@ -341,6 +355,9 @@ public class CraftingTable : MonoBehaviour
         if (currentBlade == null || part == null) return;
         
         Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠 '{part.name}' 합성 시작, 현재 위치: {part.transform.position}");
+        
+        // 합성 이펙트 실행
+        PlayCombineEffects(part.transform.position);
         
         // 월드 위치와 회전 저장 (이후 복원)
         Vector3 worldPosition = part.transform.position;
@@ -353,12 +370,12 @@ public class CraftingTable : MonoBehaviour
         part.transform.SetParent(currentBlade.transform);
         Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠가 블레이드의 자식으로 설정됨");
         
-        // 파츠 위치와 회전을 현재 상태로 유지 (Y축 조정 없음)
+        // 파츠 위치와 회전을 현재 상태로 유지 + 합성 이펙트 애니메이션
         part.transform.DOMove(worldPosition, combineAnimationDuration).SetEase(Ease.OutQuad);
-        part.transform.DORotateQuaternion(worldRotation, combineAnimationDuration).SetEase(Ease.OutQuad)
-            .OnComplete(() => {
-                Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠 '{part.name}' 최종 합성 완료 - 위치: {part.transform.position}");
-            });
+        part.transform.DORotateQuaternion(worldRotation, combineAnimationDuration).SetEase(Ease.OutQuad);
+        
+        // 합성 시 파츠가 빛나는 효과
+        StartCombineGlowEffect(part);
         
         // 파츠의 Rigidbody 제거 (콜라이더는 유지)
         if (part.TryGetComponent<Rigidbody>(out Rigidbody rb))
@@ -372,6 +389,123 @@ public class CraftingTable : MonoBehaviour
         part.canCombine = false;
         
         Debug.Log($"{LOG_PREFIX} CombineSinglePart: 파츠 '{part.name}'가 '{currentBlade.name}'에 합성되었습니다.");
+    }
+    
+    // 합성 이펙트 재생
+    private void PlayCombineEffects(Vector3 effectPosition)
+    {
+        Debug.Log($"{LOG_PREFIX} PlayCombineEffects: 합성 이펙트 재생 시작 at {effectPosition}");
+        
+        // 1. 파티클 이펙트
+        if (combineParticleEffect != null)
+        {
+            combineParticleEffect.transform.position = effectPosition;
+            combineParticleEffect.Play();
+            Debug.Log($"{LOG_PREFIX} PlayCombineEffects: 파티클 이펙트 재생됨");
+        }
+        
+        // 2. 사운드 이펙트
+        if (combineSuccessSounds != null && combineSuccessSounds.Length > 0)
+        {
+            int randomIndex = Random.Range(0, combineSuccessSounds.Length);
+            AudioClip selectedSound = combineSuccessSounds[randomIndex];
+            
+            if (selectedSound != null && SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlaySoundAtPosition(selectedSound.name, effectPosition);
+                Debug.Log($"{LOG_PREFIX} PlayCombineEffects: 사운드 재생됨 - {selectedSound.name}");
+            }
+        }
+    }
+    
+    // 파츠 발광 효과
+    private void StartCombineGlowEffect(ItemComponent part)
+    {
+        if (part == null) return;
+        
+        // 파츠의 모든 렌더러 찾기
+        Renderer[] renderers = part.GetComponentsInChildren<Renderer>();
+        
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer.material != null)
+            {
+                // 발광 효과를 위한 머티리얼 속성 변경
+                StartCoroutine(GlowEffect(renderer));
+            }
+        }
+    }
+    
+    // 발광 효과 코루틴
+    private System.Collections.IEnumerator GlowEffect(Renderer targetRenderer)
+    {
+        if (targetRenderer == null || targetRenderer.material == null) yield break;
+        
+        Material material = targetRenderer.material;
+        Color originalColor = material.color;
+        
+        // Emission 관련 설정
+        bool hasEmission = material.HasProperty("_EmissionColor");
+        Color originalEmission = Color.black;
+        bool wasEmissionEnabled = false;
+        
+        if (hasEmission)
+        {
+            originalEmission = material.GetColor("_EmissionColor");
+            wasEmissionEnabled = material.IsKeywordEnabled("_EMISSION");
+            
+            // Emission 강제 활성화
+            material.EnableKeyword("_EMISSION");
+            material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            
+            Debug.Log($"{LOG_PREFIX} GlowEffect: Emission 활성화됨 - {targetRenderer.name}");
+        }
+        else
+        {
+            Debug.LogWarning($"{LOG_PREFIX} GlowEffect: '{targetRenderer.name}' 머티리얼이 Emission을 지원하지 않습니다.");
+        }
+        
+        float elapsed = 0f;
+        float glowDuration = combineEffectDuration;
+        
+        while (elapsed < glowDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.PingPong(elapsed * 4f, 1f); // 4배 속도로 깜빡임
+            
+            // 기본 색상 효과 (subtle하게)
+            Color currentColor = Color.Lerp(originalColor, combineGlowColor, t * 0.3f);
+            material.color = currentColor;
+            
+            // Emission 효과 (강렬하게)
+            if (hasEmission)
+            {
+                // HDR 색상으로 강렬한 발광 효과
+                Color targetEmission = combineEmissionColor * emissionIntensity;
+                Color currentEmission = Color.Lerp(originalEmission, targetEmission, t);
+                material.SetColor("_EmissionColor", currentEmission);
+                
+                // 실시간 GI 업데이트
+                RendererExtensions.UpdateGIMaterials(targetRenderer);
+            }
+            
+            yield return null;
+        }
+        
+        // 원래 상태로 복원
+        material.color = originalColor;
+        if (hasEmission)
+        {
+            material.SetColor("_EmissionColor", originalEmission);
+            
+            // 원래 Emission 상태로 복원
+            if (wasEmissionEnabled)
+                material.EnableKeyword("_EMISSION");
+            else
+                material.DisableKeyword("_EMISSION");
+        }
+        
+        Debug.Log($"{LOG_PREFIX} GlowEffect: 발광 효과 완료 - {targetRenderer.name}");
     }
 
     private void Update()

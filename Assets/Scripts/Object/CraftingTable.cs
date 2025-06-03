@@ -10,7 +10,6 @@ public class CraftingTable : MonoBehaviour
     [Header("References")]
     public Transform snapPoint;
     public Transform partsHolder; // 파츠를 임시로 보관할 Transform
-    private Camera mainCamera;
 
     [Header("Camera Positions")]
     public Transform cameraCraftingViewPoint;
@@ -55,15 +54,12 @@ public class CraftingTable : MonoBehaviour
     
     // 파츠별 타격 횟수 추적
     private Dictionary<Transform, int> partHitCounts = new Dictionary<Transform, int>();
+    
+    // UI 상태 관리
+    private bool wasDetectorActive = true;
 
     private void Awake()
     {
-        mainCamera = Camera.main;
-        if (mainCamera == null)
-        {
-            Debug.LogError($"{LOG_PREFIX} Awake: Main Camera를 찾을 수 없습니다. 'MainCamera' 태그를 확인하세요.");
-        }
-        
         // partsHolder가 없으면 생성
         if (partsHolder == null)
         {
@@ -81,14 +77,53 @@ public class CraftingTable : MonoBehaviour
             Debug.LogError($"{LOG_PREFIX} SwitchToTableCamera: 카메라 작업대 위치가 설정되지 않았습니다!");
             return;
         }
+        
         Debug.Log($"{LOG_PREFIX} SwitchToTableCamera: 카메라를 작업대 시점으로 이동 (duration={cameraMoveDuration}s)");
-        PlayerController.Instance.cam.MoveTo(cameraCraftingViewPoint, cameraMoveDuration); // 카메라 이동
+        
+        // UI 감지 비활성화
+        DisableUIDetection();
+        
+        // 기존 PlayerCameraController 사용
+        PlayerController.Instance.cam.MoveTo(cameraCraftingViewPoint, cameraMoveDuration);
     }
 
     private void SwitchToMainCamera()
     {
         Debug.Log($"{LOG_PREFIX} SwitchToMainCamera: 카메라를 기본 시점으로 복귀 (duration={cameraMoveDuration}s)");
-        PlayerController.Instance.cam.ResetToDefault(cameraMoveDuration); // 로컬 기준 복귀
+        
+        // 기존 PlayerCameraController 사용
+        PlayerController.Instance.cam.ResetToDefault(cameraMoveDuration);
+        
+        // UI 감지 복원
+        EnableUIDetection();
+    }
+    
+    // UI 감지 비활성화 (파츠 이동 중 ItemName, Focus UI 숨김)
+    private void DisableUIDetection()
+    {
+        if (ItemInteractionDetector.Instance != null)
+        {
+            wasDetectorActive = ItemInteractionDetector.Instance.enabled;
+            ItemInteractionDetector.Instance.enabled = false;
+            
+            // 현재 표시된 UI 숨김
+            UIManager.Instance.HideItemName();
+            UIManager.Instance.SetFocusActive(false);
+            
+            Debug.Log($"{LOG_PREFIX} DisableUIDetection: UI 감지 비활성화됨");
+        }
+    }
+    
+    // UI 감지 활성화 복원
+    private void EnableUIDetection()
+    {
+        if (ItemInteractionDetector.Instance != null && wasDetectorActive)
+        {
+            ItemInteractionDetector.Instance.enabled = true;
+            UIManager.Instance.SetFocusActive(true);
+            
+            Debug.Log($"{LOG_PREFIX} EnableUIDetection: UI 감지 활성화됨");
+        }
     }
 
     private void OnTriggerEnter(Collider other)

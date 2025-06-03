@@ -211,7 +211,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fixedPosition: {fileID: 2127035716878733731}
-  recipes: []
   recipeLabel: WeaponRecipe
   sparkEffect: {fileID: 1552059359279625176}
 --- !u!1 &4942292203563651038

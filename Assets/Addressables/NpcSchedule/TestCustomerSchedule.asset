@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 280f294ed1b167040934b74a3c7d88cb, type: 3}
+  m_Name: TestCustomerSchedule
+  m_EditorClassIdentifier: 
+  scheduleName: Default Schedule
+  description: "NPC\uC758 \uD558\uB8E8 \uC77C\uC815\uC744 \uC815\uC758\uD569\uB2C8\uB2E4."
+  scheduleEntries:
+  - hour: 9
+    minute: 0
+    targetLocation: {fileID: 0}
+    locationTag: 
+    locationName: ShopCounter
+    fallbackPosition: {x: 0, y: 0, z: 0}
+    positionOffset: {x: 0, y: 0, z: 0}
+    behaviorType: 0
+    animationState: isIdle
+    loopAnimation: 1
+    moveSpeed: 1.5
+    stoppingDistance: 0.5
+    waitTimeBeforeNext: 0
+    shouldLookAround: 0
+    lookAroundInterval: 0
+  enableSchedule: 1
+  loopSchedule: 1
+  defaultEntry:
+    hour: 0
+    minute: 0
+    targetLocation: {fileID: 0}
+    locationTag: 
+    locationName: 
+    fallbackPosition: {x: 0, y: 0, z: 0}
+    positionOffset: {x: 0, y: 0, z: 0}
+    behaviorType: 0
+    animationState: Idle
+    loopAnimation: 1
+    moveSpeed: 1.5
+    stoppingDistance: 0.5
+    waitTimeBeforeNext: 0
+    shouldLookAround: 0
+    lookAroundInterval: 3

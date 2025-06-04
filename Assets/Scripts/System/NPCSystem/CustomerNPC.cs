@@ -101,14 +101,18 @@ public class CustomerNPC : ScheduledNPC
         }
         else
         {
-            Debug.LogWarning($"{LOG_PREFIX} ({NPCName}) 할당된 TradeZone이 없습니다. 거래를 시작할 수 없습니다.");
+            Debug.LogWarning($"{LOG_PREFIX} ({NPCName}) 할당된 TradeZone이 없습니다. 일반 대화로 진행합니다.");
             
-            // 거래 불가 안내 메시지
-            var noTradeDialogue = new System.Collections.Generic.List<DialogueLine>
+            // TradeZone이 없으면 일반 대화 재생
+            if (dialogueData != null)
             {
-                new DialogueLine { speaker = NPCName, text = "죄송해요, 지금은 거래할 수 없네요." }
-            };
-            DialogueManager.Instance.PlayGeneralDialogue(noTradeDialogue, ResumeScheduleAfterInteraction);
+                DialogueManager.Instance.PlayGeneralDialogue(dialogueData, ResumeScheduleAfterInteraction);
+            }
+            else
+            {
+                // dialogueData도 없으면 즉시 재개
+                ResumeScheduleAfterInteraction();
+            }
         }
     }
 

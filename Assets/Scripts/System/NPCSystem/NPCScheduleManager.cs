@@ -328,6 +328,7 @@ public class NPCScheduleManager : MonoBehaviour
                 // NavMeshAgent 완전 정지
                 navAgent.isStopped = true;
                 navAgent.ResetPath();
+                navAgent.velocity = Vector3.zero; // 관성으로 인한 이동 방지
                 navAgent.autoBraking = true; // 자동 브레이킹 복구
                 
                 // 애니메이션 설정 (이동 종료)

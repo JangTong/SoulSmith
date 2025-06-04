@@ -12,47 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fb03ba87bd06b742bee8a0c95abc7fb, type: 3}
   m_Name: TestCustomer
   m_EditorClassIdentifier: 
-  customerName: Test
+  customerName: Customer
   isRepeatable: 1
   useInlineMainDialogue: 1
   inlineMainDialogue:
-  - text: "\uAD6C\uB9AC\uAC801"
-    speaker: Test
-    portrait: {fileID: -348211939, guid: a03e9228371be9449a97a937850924ca, type: 3}
-    eventToTrigger: {fileID: 0}
-  - text: "\uAD6C\uB9AC\uAC802\n"
-    speaker: Test
-    portrait: {fileID: -348211939, guid: a03e9228371be9449a97a937850924ca, type: 3}
-    eventToTrigger: {fileID: 0}
-  - text: "\uAD6C\uB9AC\uAC803\n"
-    speaker: Test
-    portrait: {fileID: -348211939, guid: a03e9228371be9449a97a937850924ca, type: 3}
-    eventToTrigger: {fileID: 0}
-  - text: "\uAD6C\uB9AC\uAC804"
-    speaker: Test
+  - text: "\uAD6C\uB9AC\uB85C \uB9CC\uB4E0 \uAC80\uC774 \uD544\uC694\uD574\uC694"
+    speaker: Customer
     portrait: {fileID: -348211939, guid: a03e9228371be9449a97a937850924ca, type: 3}
     eventToTrigger: {fileID: 0}
   referenceMainDialogue: {fileID: 11400000, guid: 6c0786f266a5f7045880b6906607844f,
     type: 2}
   useInlineSuccessDialogue: 1
   inlineSuccessDialogue:
-  - text: Success 1
-    speaker: Test
-    portrait: {fileID: 21300000, guid: f73f68fe6815f5548a6c2a61b9e49add, type: 3}
-    eventToTrigger: {fileID: 0}
-  - text: Success 2
-    speaker: Test
+  - text: "\uAC10\uC0AC\uD569\uB2C8\uB2E4."
+    speaker: Customer
     portrait: {fileID: 21300000, guid: f73f68fe6815f5548a6c2a61b9e49add, type: 3}
     eventToTrigger: {fileID: 0}
   referenceSuccessDialogue: {fileID: 0}
   useInlineFailureDialogue: 1
   inlineFailureDialogue:
-  - text: Failure 1
-    speaker: Test
-    portrait: {fileID: 21300000, guid: f26fa8880b3aeef4b8516c82dc12f2a5, type: 3}
-    eventToTrigger: {fileID: 0}
-  - text: Failure 2
-    speaker: Test
+  - text: "\uC774\uAC74 \uC81C\uAC00 \uC6D0\uD558\uB294 \uAC83\uC774 \uC544\uB2C8\uC5D0\uC694"
+    speaker: Customer
     portrait: {fileID: 21300000, guid: f26fa8880b3aeef4b8516c82dc12f2a5, type: 3}
     eventToTrigger: {fileID: 0}
   referenceFailureDialogue: {fileID: 11400000, guid: 6c0786f266a5f7045880b6906607844f,

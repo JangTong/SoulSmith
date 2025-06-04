@@ -13,9 +13,7 @@ MonoBehaviour:
   m_Name: TestCustomerDialogue
   m_EditorClassIdentifier: 
   lines:
-  - text: Test 1
-    speaker: Test
+  - text: "\uC548\uB155\uD558\uC138\uC694!"
+    speaker: Customer
     portrait: {fileID: 0}
-  - text: Test 2
-    speaker: Test
-    portrait: {fileID: 0}
+    eventToTrigger: {fileID: 0}

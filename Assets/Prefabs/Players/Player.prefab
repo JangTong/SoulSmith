@@ -205,6 +205,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraTransform: {fileID: 304046193067704414}
   defaultAnchor: {fileID: 6971424889941246183}
+  enableOrthographicMode: 0
+  orthographicSize: 3
 --- !u!114 &3517966859871001885
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -262,7 +264,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationSpeed: 720
   summonKey: 104
-  hammerPrefab: {fileID: 5528167789922007155, guid: 4fb76995d7ac3d44583c256513215a15,
+  hammerPrefab: {fileID: 1955430896243646436, guid: ec04c0e0361abbf4faf14bbacc399590,
     type: 3}
   spawnDistance: 10
   flightDuration: 0.5

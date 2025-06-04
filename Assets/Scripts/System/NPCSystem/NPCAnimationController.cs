@@ -128,16 +128,26 @@ public class NPCAnimationController : MonoBehaviour
         // 명시적으로 정지된 경우
         if (navAgent.isStopped) return false;
         
-        // 경로가 있고 실제로 움직이고 있으면 이동 중
+        // 경로가 없으면 이동 중이 아님 (관성으로 움직여도 무시)
         bool hasPath = navAgent.hasPath && !navAgent.pathPending;
+        if (!hasPath)
+        {
+            if (showDebugLogs && navAgent.velocity.magnitude > walkingSpeedThreshold)
+            {
+                Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 경로 없음 - 관성 이동 무시: Velocity={navAgent.velocity.magnitude:F3}");
+            }
+            return false;
+        }
+        
+        // 경로가 있고 실제로 움직이고 있으면 이동 중
         bool isActuallyMoving = navAgent.velocity.magnitude > walkingSpeedThreshold;
         
-        if (showDebugLogs && (hasPath || isActuallyMoving))
+        if (showDebugLogs)
         {
             Debug.Log($"{LOG_PREFIX} ({gameObject.name}) 이동 체크: HasPath={hasPath}, Velocity={navAgent.velocity.magnitude:F3}, Threshold={walkingSpeedThreshold}");
         }
         
-        return hasPath || isActuallyMoving;
+        return hasPath && isActuallyMoving;
     }
 
     /// <summary>

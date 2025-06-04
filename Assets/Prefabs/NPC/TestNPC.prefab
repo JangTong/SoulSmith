@@ -1927,13 +1927,14 @@ MonoBehaviour:
   enableSchedule: 1
   debugSchedule: 1
   updateInterval: 1
-  arrivalTolerance: 1
+  arrivalTolerance: 0.6
   smoothMovement: 1
   useAnimationController: 1
   currentScheduleTime: 
   currentLocation: 
   currentBehavior: 0
   isExecutingSchedule: 0
+  pauseSchedule: 0
 --- !u!114 &6167035501963687861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1949,8 +1950,8 @@ MonoBehaviour:
   enableAnimations: 1
   animationTransitionTime: 0.1
   autoDetectWalking: 1
-  walkingSpeedThreshold: 0.1
-  walkingUpdateInterval: 0.1
+  walkingSpeedThreshold: 0.2
+  walkingUpdateInterval: 0.2
   speedParameterName: Speed
   behaviorParameterName: Behavior
   isMovingParameterName: IsMoving
@@ -1966,10 +1967,10 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 3.5
+  m_Speed: 0
   m_Acceleration: 8
   avoidancePriority: 50
-  m_AngularSpeed: 120
+  m_AngularSpeed: 360
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
@@ -1993,7 +1994,7 @@ MonoBehaviour:
   NPCName: Customer
   isDialogueable: 1
   dialogueData: {fileID: 11400000, guid: 6c0786f266a5f7045880b6906607844f, type: 2}
-  npcSchedule: {fileID: 11400000, guid: 2616ef4b2911aeb4fad4f27172117926, type: 2}
+  npcSchedule: {fileID: 11400000, guid: 9979e413e35c9a24f8632287ab5e22c8, type: 2}
   autoStartSchedule: 1
   allowInteractionDuringSchedule: 0
   autoControlAnimation: 1

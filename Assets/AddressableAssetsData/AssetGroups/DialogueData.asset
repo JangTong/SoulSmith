@@ -17,6 +17,11 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 0b32ca05e56bdd94ba8e9ad1fbb24931
   m_SerializeEntries:
+  - m_GUID: 2e7029569b26a8d43a4b3e2868d98dee
+    m_Address: Assets/Addressables/DialogueData/Tutorial/TutorialDialogue_3.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6c0786f266a5f7045880b6906607844f
     m_Address: Assets/Addressables/DialogueData/TestCustomerDialogue.asset
     m_ReadOnly: 0

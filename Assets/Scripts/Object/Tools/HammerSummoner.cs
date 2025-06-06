@@ -23,6 +23,14 @@ public class HammerSummoner : MonoBehaviour
             TrySummon();
     }
 
+    /// <summary>
+    /// 외부에서 망치 소환을 호출할 수 있는 public 메서드
+    /// </summary>
+    public void Summon()
+    {
+        TrySummon();
+    }
+
     private void TrySummon()
     {
         var ctrl = ItemInteractionController.Instance;

@@ -9,10 +9,6 @@ public class DialogueLine
     public string text;       // 대사 텍스트
     public string speaker;    // 화자 이름
     public Sprite portrait;   // 화자 초상화
-
-    
-    [Tooltip("이 대사가 출력될 때 실행될 GameEvent (선택)")]
-    public GameEventAsset eventToTrigger;  // ← 핵심 포인트
 }
 
 [CreateAssetMenu(

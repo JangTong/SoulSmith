@@ -154,12 +154,6 @@ public class DialogueManager : MonoBehaviour
         );
 
         Debug.Log($"{LOG_PREFIX} {line.speaker}: {line.text}");
-
-        if (line.eventToTrigger != null)
-        {
-            EventService.Instance.Execute(line.eventToTrigger);
-            Debug.Log($"{LOG_PREFIX} Event triggered: {line.eventToTrigger.name}");
-        }
     }
 
     private void HandleNext()

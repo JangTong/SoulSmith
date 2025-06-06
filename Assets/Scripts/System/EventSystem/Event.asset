@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd911e8e144b8d6428b3b7fba69595f1, type: 3}
+  m_Name: Event
+  m_EditorClassIdentifier: 
+  eventId: 
+  repeatable: 0
+  requiredEvents: []
+  dialogueLines:
+  - speaker: 
+    text: 
+    portrait: {fileID: 0}
+    hasActions: 1
+    actions:
+      controlObject: 0
+      targetObject: {fileID: 0}
+      setActive: 0
+      moveCamera: 0
+      cameraTarget: {fileID: 0}
+      moveDuration: 0
+      playSound: 0
+      soundClip: {fileID: 0}
+      playParticle: 0
+      particleEffect: {fileID: 0}
+      particlePosition: {fileID: 0}
+      markEventComplete: 0
+      eventToComplete: 
+      addDelay: 0
+      delayTime: 0
+      customActions: []
+  markEventComplete: 1
+  eventToMarkComplete: 
+  resetCamera: 1

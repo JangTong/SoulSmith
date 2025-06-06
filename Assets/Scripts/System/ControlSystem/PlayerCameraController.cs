@@ -182,4 +182,21 @@ public class PlayerCameraController : MonoBehaviour
         RestorePerspectiveProjection();
         Debug.Log($"{LOG_PREFIX} DisableOrthographicMode: 직교 투영 모드 비활성화됨");
     }
+    
+    // === UnityEvent용 간단한 wrapper 함수들 ===
+    
+    public void MoveToTargetEvent(Transform target)
+    {
+        MoveTo(target, 0.5f);
+    }
+    
+    public void ResetCameraEvent()
+    {
+        ResetToDefault(0.5f, true);
+    }
+    
+    public void ShakeCameraEvent()
+    {
+        ShakeCamera(0.2f, 0.1f);
+    }
 }

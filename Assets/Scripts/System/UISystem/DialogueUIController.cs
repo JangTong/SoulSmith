@@ -43,6 +43,16 @@ public class DialogueUIController : MonoBehaviour
         Debug.Log($"{LOG_PREFIX} 초기화 완료");
     }
 
+    private void Update()
+    {
+        // 대화 중이고, 타이핑이 시작되었거나 타이핑이 완료된 상태에서만 스페이스바 입력 처리
+        if (isInDialogue && (isTyping || (!isTyping && !string.IsNullOrEmpty(dialogText.text))) && Input.GetKeyDown(KeyCode.Space))
+        {
+            // Next 버튼과 같은 동작 수행
+            HandleButtonClick(() => OnNextClicked?.Invoke());
+        }
+    }
+
     private void InitializeComponents()
     {
         if (panel != null)

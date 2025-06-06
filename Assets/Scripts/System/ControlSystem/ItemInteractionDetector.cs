@@ -37,11 +37,37 @@ public class ItemInteractionDetector : MonoBehaviour
 
     void Update()
     {
+        // 컴포넌트가 비활성화되어 있으면 UI 업데이트 안함
+        if (!enabled) return;
+        
         UpdateDetectionUI();
     }
 
     private void UpdateDetectionUI()
     {
+        // 컴포넌트가 비활성화되어 있으면 강제로 UI 숨김
+        if (!enabled)
+        {
+            if (wasShowingItem)
+            {
+                UIManager.Instance.HideItemName();
+                wasShowingItem = false;
+                Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: 컴포넌트 비활성화로 인해 UI 숨김");
+            }
+            return;
+        }
+        
+        // Focus가 비활성화되어 있으면 UI 업데이트 안함 (대화 중일 때 등)
+        if (UIManager.Instance?.hud != null && !UIManager.Instance.hud.IsFocusActive)
+        {
+            if (wasShowingItem)
+            {
+                Debug.Log($"{LOG_PREFIX} UpdateDetectionUI: Focus 비활성화로 인해 UI 업데이트 중단");
+                wasShowingItem = false; // 상태만 리셋, UI는 이미 HUD에서 숨김
+            }
+            return;
+        }
+        
         // ① 현재 프레임 감지 상태 계산
         bool willShow = false;
         RaycastHit hit;

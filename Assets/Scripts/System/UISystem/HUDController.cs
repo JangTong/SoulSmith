@@ -20,6 +20,9 @@ public class HUDController : MonoBehaviour
     [Header("Reticle / Focus")]
     [SerializeField] private GameObject focusImage;
 
+    // Focus 상태 확인 프로퍼티
+    public bool IsFocusActive => focusImage != null && focusImage.activeSelf;
+
     // 기존 HUD 업데이트
     public void UpdateHUD(int gold, int day, float timer)
     {
@@ -61,6 +64,13 @@ public class HUDController : MonoBehaviour
     {
         if (focusImage != null)
             focusImage.SetActive(active);
-        Debug.Log($"[UI][HUD] FocusImage Active: {active}");
+        
+        // Focus가 꺼질 때 InfoText도 같이 숨김
+        if (!active)
+        {
+            HideItemName();
+        }
+        
+        Debug.Log($"[UI][HUD] FocusImage Active: {active}, InfoText: {(active ? "유지" : "숨김")}");
     }
 }

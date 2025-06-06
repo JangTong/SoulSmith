@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     [Header("서브 컨트롤러")]
     public HUDController hud;
     public DialogueUIController dialogueUI;
+    public EffectUIController effectUI;
 
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI goldText;
@@ -190,6 +191,55 @@ public class UIManager : MonoBehaviour
         if (dialogueUI != null)
         {
             dialogueUI.Hide();
+        }
+    }
+
+    // 화면 효과 UI
+    public void FadeIn()
+    {
+        if (effectUI != null)
+        {
+            effectUI.FadeIn();
+        }
+    }
+
+    public void FadeOut()
+    {
+        if (effectUI != null)
+        {
+            effectUI.FadeOut();
+        }
+    }
+    
+    public void FadeIn(float duration)
+    {
+        if (effectUI != null)
+        {
+            effectUI.FadeIn(duration);
+        }
+    }
+
+    public void FadeOut(float duration)
+    {
+        if (effectUI != null)
+        {
+            effectUI.FadeOut(duration);
+        }
+    }
+
+    public void SetDarkImmediate()
+    {
+        if (effectUI != null)
+        {
+            effectUI.SetDarkImmediate();
+        }
+    }
+
+    public void SetBrightImmediate()
+    {
+        if (effectUI != null)
+        {
+            effectUI.SetBrightImmediate();
         }
     }
 }

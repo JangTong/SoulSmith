@@ -102,7 +102,7 @@ public class DOTweenHelper : MonoBehaviour
             StartFloatingInternal();
         }
     }
-    
+
     /// <summary>
     /// 둥둥 효과 내부 구현
     /// </summary>
@@ -714,7 +714,7 @@ public class DOTweenHelper : MonoBehaviour
     {
         StartSpinningY(90f);
     }
-    
+
     /// <summary>
     /// 둥둥 효과와 회전 효과를 동시에 시작
     /// </summary>
@@ -725,7 +725,7 @@ public class DOTweenHelper : MonoBehaviour
         StartSpinningY();
         Debug.Log($"[DOTweenHelper] {name}: 둥둥 효과와 회전 효과 동시 시작!");
     }
-    
+
     /// <summary>
     /// 모든 효과 중지
     /// </summary>

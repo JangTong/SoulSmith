@@ -5,7 +5,7 @@ public class DayNightSystem : MonoBehaviour
 {
     private const string LOG_PREFIX = "[DayNightSystem]";
     public static DayNightSystem Instance { get; private set; }
-    
+
     [Header("라이트 설정")]
     public Light mainLight;
     

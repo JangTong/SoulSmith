@@ -10,6 +10,7 @@ public class UIManager : MonoBehaviour
     public HUDController hud;
     public DialogueUIController dialogueUI;
     public EffectUIController effectUI;
+    public GrindingUIController grindingUI;
 
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI goldText;
@@ -240,6 +241,33 @@ public class UIManager : MonoBehaviour
         if (effectUI != null)
         {
             effectUI.SetBrightImmediate();
+        }
+    }
+    
+    // 연마 UI
+    public void OpenGrindingUI(GameObject weapon, float weaponAttack)
+    {
+        if (grindingUI != null)
+        {
+            GrindingWheel wheel = FindObjectOfType<GrindingWheel>();
+            if (wheel != null)
+            {
+                grindingUI.OpenUI(weapon, weaponAttack, wheel);
+                Debug.Log($"{LOG_PREFIX} 연마 UI 오픈");
+            }
+            else
+            {
+                Debug.LogError($"{LOG_PREFIX} GrindingWheel을 찾을 수 없습니다.");
+            }
+        }
+    }
+    
+    public void CloseGrindingUI()
+    {
+        if (grindingUI != null)
+        {
+            grindingUI.CloseUI();
+            Debug.Log($"{LOG_PREFIX} 연마 UI 닫기");
         }
     }
 }

@@ -128,12 +128,12 @@ public class Forge : MonoBehaviour
                 if (comp.itemType == ItemType.Resource)
                 {
                     // Resource라면 직접 MaterialUsed에 추가
-                    newItemComponent.AddMaterial(comp);
+                newItemComponent.AddMaterial(comp);
                 }
                 else
                 {
                     // Resource가 아니라면 해당 아이템의 MaterialUsed에 있는 Resource들을 계승
-                    newItemComponent.AddMaterialsFrom(comp);
+                newItemComponent.AddMaterialsFrom(comp);
                 }
             }
             newItemRb.isKinematic = false;
@@ -153,7 +153,7 @@ public class Forge : MonoBehaviour
             {
                 // DOTween Kill 처리
                 item.transform.DOKill();
-                Destroy(item);
+            Destroy(item);
             }
         }
 
@@ -264,7 +264,7 @@ public class Forge : MonoBehaviour
             if (item == null) continue;
 
             // 태그 변경으로 수집 방지
-            item.tag = "ProcessingItem";
+            item.tag = "Untagged";
 
             // Rigidbody 비활성화 (물리적 상호작용 방지)
             Rigidbody rb = item.GetComponent<Rigidbody>();

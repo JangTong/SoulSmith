@@ -25,6 +25,9 @@ public class ItemComponent : MonoBehaviour
     public float defPower;
     public bool isPolished = false;
 
+    [Header("연마 속성")]
+    [SerializeField] private float smoothness = 0f; // 연마도 (0.0 ~ 1.0)
+
     [Header("Elemental Attributes")]
     public ElementalMana elementalMana;
     public ElementalResistance elementalResistance;
@@ -123,6 +126,19 @@ public class ItemComponent : MonoBehaviour
         return $"{itemName} (Rarity: {itemRarity}, Type: {itemType}, Weight: {weight}, Value: {buyPrice}/{sellPrice})";
     }
 
+    /// <summary>
+    /// 연마 가능 여부 - 블레이드나 무기 타입인 경우 연마 가능
+    /// </summary>
+    public bool IsSharpenable
+    {
+        get
+        {
+            // 블레이드 파츠이거나 무기 타입인 경우 연마 가능
+            return (partsType == PartsType.Blade) || 
+                   (itemType == ItemType.Weapon && weaponType != WeaponType.None);
+        }
+    }
+
     public void AddStatsFrom(ItemComponent other)
     {
         atkPower += other.atkPower;
@@ -168,6 +184,15 @@ public class ItemComponent : MonoBehaviour
         elementalAffinity.waterAffinity -= other.elementalAffinity.waterAffinity;
         elementalAffinity.earthAffinity -= other.elementalAffinity.earthAffinity;
         elementalAffinity.airAffinity -= other.elementalAffinity.airAffinity;
+    }
+
+    /// <summary>
+    /// 연마도 프로퍼티 (0.0 ~ 1.0)
+    /// </summary>
+    public float Smoothness
+    {
+        get => smoothness;
+        set => smoothness = Mathf.Clamp01(value);
     }
 }
 

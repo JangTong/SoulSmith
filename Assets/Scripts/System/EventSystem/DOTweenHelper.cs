@@ -1,5 +1,6 @@
 using UnityEngine;
 using DG.Tweening;
+using System.Collections;
 
 /// <summary>
 /// 개별 오브젝트에 붙여서 자기 자신을 애니메이션할 수 있는 헬퍼 컴포넌트
@@ -11,17 +12,29 @@ public class DOTweenHelper : MonoBehaviour
     public float duration = 1f;
     public Ease ease = Ease.OutQuad;
     
-    [Header("둥둥 효과 설정")]
+    [Header("플로팅 효과 설정")]
     public float floatHeight = 0.3f;  // 떠다니는 높이
     public float floatDuration = 1.5f;  // 한 번 위아래 움직이는 시간
     
-    // 현재 실행 중인 Tween
-    private Tween currentTween;
+    [Header("스피닝 회전 설정")]
+    [SerializeField] private float defaultSpinSpeed = 180f;  // 기본 회전 속도 (도/초)
+    
+    /// <summary>
+    /// 회전 속도를 기반으로 DOTween 지속시간 계산 (360도 기준)
+    /// </summary>
+    private float CalculateSpinDuration(float speed)
+    {
+        return 360f / Mathf.Max(1f, speed); // 최소 1도/초
+    }
+    
+    // 각각의 애니메이션용 Tween들
+    private Tween currentTween; // 기존 호환성을 위해 유지
+    private Tween floatingTween; // 둥둥 효과 전용
+    private Tween spinningTween; // 회전 효과 전용
     
     // 캐시된 Transform
     private Transform cachedTransform;
     
-    // 둥둥 효과용
     private Vector3 originalPosition;
     private bool isFloating = false;
     
@@ -102,11 +115,17 @@ public class DOTweenHelper : MonoBehaviour
         
         Vector3 targetPosition = originalPosition + Vector3.up * floatHeight;
         
-        currentTween = cachedTransform.DOMove(targetPosition, floatDuration)
+        // 기존 둥둥 효과가 있으면 중지
+        if (floatingTween != null && floatingTween.IsActive())
+        {
+            floatingTween.Kill();
+        }
+        
+        floatingTween = cachedTransform.DOMove(targetPosition, floatDuration)
             .SetEase(Ease.InOutSine)
             .SetLoops(-1, LoopType.Yoyo);
             
-        Debug.Log($"[DOTweenHelper] {name}: 둥둥 효과 시작 (높이: {floatHeight}, 주기: {floatDuration}초)");
+        Debug.Log($"[DOTweenHelper] {name}: 둥둥 효과 시작 (높이: {floatHeight}, 주기: {floatDuration}초) - 회전과 동시 실행 가능");
     }
 
     /// <summary>
@@ -116,13 +135,18 @@ public class DOTweenHelper : MonoBehaviour
     {
         if (!isFloating) return;
         
-        StopCurrentTween();
+        // 둥둥 효과만 중지 (회전은 그대로 유지)
+        if (floatingTween != null && floatingTween.IsActive())
+        {
+            floatingTween.Kill();
+        }
+        
         isFloating = false;
         
         // 원래 위치로 부드럽게 복귀
-        currentTween = cachedTransform.DOMove(originalPosition, 0.5f).SetEase(Ease.OutQuad);
+        floatingTween = cachedTransform.DOMove(originalPosition, 0.5f).SetEase(Ease.OutQuad);
         
-        Debug.Log($"[DOTweenHelper] {name}: 둥둥 효과 중지 (원래 위치로 복귀)");
+        Debug.Log($"[DOTweenHelper] {name}: 둥둥 효과 중지 (원래 위치로 복귀) - 회전은 계속 유지");
     }
 
     /// <summary>
@@ -360,90 +384,124 @@ public class DOTweenHelper : MonoBehaviour
     }
 
     /// <summary>
-    /// Y축 연속 회전 시작 (로컬 스핀 효과)
+    /// Y축 연속 회전 시작 (기본 속도)
     /// </summary>
     public void StartSpinningY()
     {
-        StopCurrentTween();
-        Vector3 targetRotation = new Vector3(0, 360, 0);
-        currentTween = cachedTransform.DOLocalRotate(targetRotation, 2f, RotateMode.FastBeyond360)
+        StartSpinningY(defaultSpinSpeed);
+    }
+    
+    /// <summary>
+    /// Y축 연속 회전 시작 (속도 지정) - 음수 값으로 역방향 회전 가능
+    /// </summary>
+    public void StartSpinningY(float speed)
+    {
+        // 기존 회전 효과가 있으면 중지 (둥둥 효과는 그대로 유지)
+        if (spinningTween != null && spinningTween.IsActive())
+        {
+            spinningTween.Kill();
+        }
+        
+        // 음수면 역방향 회전
+        float rotationAmount = speed > 0 ? 360f : -360f;
+        Vector3 targetRotation = new Vector3(0, rotationAmount, 0);
+        
+        spinningTween = cachedTransform.DOLocalRotate(targetRotation, CalculateSpinDuration(Mathf.Abs(speed)), RotateMode.FastBeyond360)
             .SetEase(Ease.Linear)
             .SetLoops(-1, LoopType.Restart);
-        Debug.Log($"[DOTweenHelper] {name}: Y축 로컬 연속 회전 시작");
+            
+        // 호환성을 위해 currentTween도 설정
+        currentTween = spinningTween;
+        
+        string direction = speed > 0 ? "시계방향" : "반시계방향";
+        Debug.Log($"[DOTweenHelper] {name}: Y축 {direction} 스피닝 시작 ({Mathf.Abs(speed)}도/초)");
     }
 
     /// <summary>
-    /// X축 연속 회전 시작 (로컬 스핀 효과)
+    /// X축 연속 회전 시작 (기본 속도)
     /// </summary>
     public void StartSpinningX()
     {
-        StopCurrentTween();
-        Vector3 targetRotation = new Vector3(360, 0, 0);
-        currentTween = cachedTransform.DOLocalRotate(targetRotation, 2f, RotateMode.FastBeyond360)
+        StartSpinningX(defaultSpinSpeed);
+    }
+    
+    /// <summary>
+    /// X축 연속 회전 시작 (속도 지정) - 음수 값으로 역방향 회전 가능
+    /// </summary>
+    public void StartSpinningX(float speed)
+    {
+        // 기존 회전 효과가 있으면 중지 (둥둥 효과는 그대로 유지)
+        if (spinningTween != null && spinningTween.IsActive())
+        {
+            spinningTween.Kill();
+        }
+        
+        // 음수면 역방향 회전
+        float rotationAmount = speed > 0 ? 360f : -360f;
+        Vector3 targetRotation = new Vector3(rotationAmount, 0, 0);
+        
+        spinningTween = cachedTransform.DOLocalRotate(targetRotation, CalculateSpinDuration(Mathf.Abs(speed)), RotateMode.FastBeyond360)
             .SetEase(Ease.Linear)
             .SetLoops(-1, LoopType.Restart);
-        Debug.Log($"[DOTweenHelper] {name}: X축 로컬 연속 회전 시작");
+            
+        currentTween = spinningTween;
+        string direction = speed > 0 ? "시계방향" : "반시계방향";
+        Debug.Log($"[DOTweenHelper] {name}: X축 {direction} 스피닝 시작 ({Mathf.Abs(speed)}도/초)");
     }
 
     /// <summary>
-    /// Z축 연속 회전 시작 (로컬 스핀 효과)
+    /// Z축 연속 회전 시작 (기본 속도)
     /// </summary>
     public void StartSpinningZ()
     {
-        StopCurrentTween();
-        Vector3 targetRotation = new Vector3(0, 0, 360);
-        currentTween = cachedTransform.DOLocalRotate(targetRotation, 2f, RotateMode.FastBeyond360)
-            .SetEase(Ease.Linear)
-            .SetLoops(-1, LoopType.Restart);
-        Debug.Log($"[DOTweenHelper] {name}: Z축 로컬 연속 회전 시작");
+        StartSpinningZ(defaultSpinSpeed);
     }
-
+    
     /// <summary>
-    /// Y축 반시계방향 연속 회전 시작 (로컬)
+    /// Z축 연속 회전 시작 (속도 지정) - 음수 값으로 역방향 회전 가능
     /// </summary>
-    public void StartSpinningYReverse()
+    public void StartSpinningZ(float speed)
     {
-        StopCurrentTween();
-        Vector3 targetRotation = new Vector3(0, -360, 0);
-        currentTween = cachedTransform.DOLocalRotate(targetRotation, 2f, RotateMode.FastBeyond360)
+        // 기존 회전 효과가 있으면 중지 (둥둥 효과는 그대로 유지)
+        if (spinningTween != null && spinningTween.IsActive())
+        {
+            spinningTween.Kill();
+        }
+        
+        // 음수면 역방향 회전
+        float rotationAmount = speed > 0 ? 360f : -360f;
+        Vector3 targetRotation = new Vector3(0, 0, rotationAmount);
+        
+        spinningTween = cachedTransform.DOLocalRotate(targetRotation, CalculateSpinDuration(Mathf.Abs(speed)), RotateMode.FastBeyond360)
             .SetEase(Ease.Linear)
             .SetLoops(-1, LoopType.Restart);
-        Debug.Log($"[DOTweenHelper] {name}: Y축 반시계방향 로컬 연속 회전 시작");
+            
+        currentTween = spinningTween;
+        string direction = speed > 0 ? "시계방향" : "반시계방향";
+        Debug.Log($"[DOTweenHelper] {name}: Z축 {direction} 스피닝 시작 ({Mathf.Abs(speed)}도/초)");
     }
 
-    /// <summary>
-    /// X축 반시계방향 연속 회전 시작 (로컬)
-    /// </summary>
-    public void StartSpinningXReverse()
-    {
-        StopCurrentTween();
-        Vector3 targetRotation = new Vector3(-360, 0, 0);
-        currentTween = cachedTransform.DOLocalRotate(targetRotation, 2f, RotateMode.FastBeyond360)
-            .SetEase(Ease.Linear)
-            .SetLoops(-1, LoopType.Restart);
-        Debug.Log($"[DOTweenHelper] {name}: X축 반시계방향 로컬 연속 회전 시작");
-    }
+
 
     /// <summary>
-    /// Z축 반시계방향 연속 회전 시작 (로컬)
-    /// </summary>
-    public void StartSpinningZReverse()
-    {
-        StopCurrentTween();
-        Vector3 targetRotation = new Vector3(0, 0, -360);
-        currentTween = cachedTransform.DOLocalRotate(targetRotation, 2f, RotateMode.FastBeyond360)
-            .SetEase(Ease.Linear)
-            .SetLoops(-1, LoopType.Restart);
-        Debug.Log($"[DOTweenHelper] {name}: Z축 반시계방향 로컬 연속 회전 시작");
-    }
-
-    /// <summary>
-    /// 연속 회전 중지
+    /// 스피닝 중지
     /// </summary>
     public void StopSpinning()
     {
-        StopCurrentTween();
-        Debug.Log($"[DOTweenHelper] {name}: 연속 회전 중지");
+        // 회전 효과만 중지 (둥둥 효과는 그대로 유지)
+        if (spinningTween != null && spinningTween.IsActive())
+        {
+            spinningTween.Kill();
+            spinningTween = null;
+        }
+        
+        // currentTween이 spinningTween과 같았다면 null로 설정
+        if (currentTween == spinningTween)
+        {
+            currentTween = null;
+        }
+        
+        Debug.Log($"[DOTweenHelper] {name}: 스피닝 중지 - 둥둥 효과는 계속 유지");
     }
 
     /// <summary>
@@ -551,12 +609,151 @@ public class DOTweenHelper : MonoBehaviour
     /// </summary>
     private void StopCurrentTween()
     {
-        currentTween?.Kill();
+        if (currentTween != null)
+        {
+            Debug.Log($"[DOTweenHelper] {name}: Tween 중지 - ID: {currentTween.GetHashCode()}, IsActive: {currentTween.IsActive()}");
+            currentTween.Kill();
+            currentTween = null;
+        }
+    }
+
+    /// <summary>
+    /// 이 Transform에 연결된 모든 DOTween 강제 중지 (문제 해결용)
+    /// </summary>
+    [ContextMenu("🛑 모든 DOTween 강제 중지")]
+    public void KillAllTweens()
+    {
+        // 개별 Tween들 중지
+        if (floatingTween != null && floatingTween.IsActive())
+        {
+            floatingTween.Kill();
+            floatingTween = null;
+        }
+        
+        if (spinningTween != null && spinningTween.IsActive())
+        {
+            spinningTween.Kill();
+            spinningTween = null;
+        }
+        
+        if (currentTween != null && currentTween.IsActive())
+        {
+            currentTween.Kill();
+            currentTween = null;
+        }
+        
+        // 이 Transform에 연결된 모든 Tween 강제 중지
+        if (cachedTransform != null)
+        {
+            DOTween.Kill(cachedTransform);
+            Debug.Log($"[DOTweenHelper] {name}: Transform의 모든 DOTween 강제 중지");
+        }
+        
+        // 이 GameObject에 연결된 모든 Tween 강제 중지
+        DOTween.Kill(gameObject);
+        Debug.Log($"[DOTweenHelper] {name}: GameObject의 모든 DOTween 강제 중지");
+        
+        isFloating = false;
+    }
+
+    /// <summary>
+    /// DOTween 상태 확인 (간단 진단용)
+    /// </summary>
+    [ContextMenu("🔍 상태 확인")]
+    public void CheckStatus()
+    {
+        Debug.Log($"=== DOTween 상태: {name} ===");
+        Debug.Log($"활성화: {gameObject.activeInHierarchy}");
+        Debug.Log($"스피닝 중: {(currentTween != null && currentTween.IsActive())}");
+        Debug.Log($"스핀 속도: {defaultSpinSpeed}도/초");
+        Debug.Log($"전체 활성 Tween 수: {DOTween.TotalPlayingTweens()}");
+        Debug.Log("========================");
+    }
+
+    /// <summary>
+    /// 스피닝 속도 실시간 체크 (문제 진단용)
+    /// </summary>
+    [ContextMenu("🔄 스피닝 속도 체크")]
+    public void CheckSpinSpeed()
+    {
+        if (spinningTween == null || !spinningTween.IsActive())
+        {
+            Debug.Log($"[DOTweenHelper] {name}: 현재 스피닝 중이 아닙니다");
+            return;
+        }
+        
+        Debug.Log($"=== 스피닝 속도 체크: {name} ===");
+        Debug.Log($"기본 속도: {defaultSpinSpeed}도/초");
+        Debug.Log($"Tween ID: {spinningTween.GetHashCode()}");
+        Debug.Log($"Tween 활성 상태: {spinningTween.IsActive()}");
+        Debug.Log($"Tween 재생 중: {spinningTween.IsPlaying()}");
+        Debug.Log($"현재 Y축 각도: {cachedTransform.localEulerAngles.y:F1}도");
+        Debug.Log("==============================");
+    }
+
+    /// <summary>
+    /// 빠른 속도로 Y축 스피닝 (360도/초)
+    /// </summary>
+    public void SetFastSpin()
+    {
+        StartSpinningY(360f);
+    }
+
+    /// <summary>
+    /// 보통 속도로 Y축 스피닝 (180도/초)
+    /// </summary>
+    public void SetNormalSpin()
+    {
+        StartSpinningY(180f);
+    }
+
+    /// <summary>
+    /// 느린 속도로 Y축 스피닝 (90도/초)
+    /// </summary>
+    public void SetSlowSpin()
+    {
+        StartSpinningY(90f);
+    }
+    
+    /// <summary>
+    /// 둥둥 효과와 회전 효과를 동시에 시작
+    /// </summary>
+    [ContextMenu("🎯 둥둥+회전 동시 시작")]
+    public void StartFloatingAndSpinning()
+    {
+        StartFloating();
+        StartSpinningY();
+        Debug.Log($"[DOTweenHelper] {name}: 둥둥 효과와 회전 효과 동시 시작!");
+    }
+    
+    /// <summary>
+    /// 모든 효과 중지
+    /// </summary>
+    [ContextMenu("⏹️ 모든 효과 중지")]
+    public void StopAllEffects()
+    {
+        StopFloating();
+        StopSpinning();
+        Debug.Log($"[DOTweenHelper] {name}: 모든 효과 중지");
+    }
+
+    /// <summary>
+    /// 현재 스피닝을 기본 속도로 재시작
+    /// </summary>
+    private void RestartCurrentSpin()
+    {
+        if (spinningTween == null || !spinningTween.IsActive()) return;
+
+        // 스피닝 중지 후 기본 속도로 재시작
+        StopSpinning();
+        StartSpinningY();
+        Debug.Log($"[DOTweenHelper] {name}: 스피닝 재시작 완료 ({defaultSpinSpeed}도/초)");
     }
 
     private void OnDestroy()
     {
         // DOTween 메모리 누수 방지
-        currentTween?.Kill();
+        KillAllTweens();
+        Debug.Log($"[DOTweenHelper] {name}: OnDestroy - 모든 Tween 정리 완료");
     }
 } 

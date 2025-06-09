@@ -1,12 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class Forge : MonoBehaviour
 {
+    [Header("가공 설정")]
     public Transform targetPosition;
     public GameObject itemPrefab;
     public List<GameObject> storedItems = new List<GameObject>();
+    
+    [Header("애니메이션 설정")]
+    [SerializeField] private float sinkDepth = 0.5f;  // 가라앉는 깊이
+    [SerializeField] private float sinkDuration = 2.5f;  // 가라앉는 시간 (3초보다 짧게)
 
     private bool isForging = false;
     private ForgeFire forgeFire;
@@ -15,6 +21,8 @@ public class Forge : MonoBehaviour
     // 재사용 가능한 스탯 저장용 컴포넌트
     private ItemComponent statsComponent;
     private GameObject statsContainer;
+    
+    private const string LOG_PREFIX = "[Forge]";
 
     private void Start()
     {
@@ -39,7 +47,7 @@ public class Forge : MonoBehaviour
     {
         if (isForging)
         {
-            Debug.LogWarning("[Forge] 이미 가동 중입니다! 추가 입력은 무시됩니다.");
+            Debug.LogWarning($"{LOG_PREFIX} 이미 가동 중입니다! 추가 입력은 무시됩니다.");
             return;
         }
         StartCoroutine(Forging());
@@ -49,16 +57,18 @@ public class Forge : MonoBehaviour
     {
         isForging = true;
 
-        // 1) 저장된 아이템이 아예 없으면 중단
-        if (storedItems.Count == 0)
+        // 1) 가공 시작 시점에 트리거 영역 내 아이템들을 한 번만 검사
+        List<GameObject> itemsToProcess = GetItemsInTriggerArea();
+        
+        if (itemsToProcess.Count == 0)
         {
-            Debug.LogWarning("[Forge] 저장된 Metal 또는 Fuel 아이템이 없습니다!");
+            Debug.LogWarning($"{LOG_PREFIX} 트리거 영역에 가공 가능한 아이템이 없습니다!");
             isForging = false;
             yield break;
         }
 
         // 2) 실제 컴포넌트만 추출
-        List<ItemComponent> components = GetItemComponents(storedItems);
+        List<ItemComponent> components = GetItemComponents(itemsToProcess);
 
         // 3) Metal/Fuel 개수 집계 & 로그
         int metalCount = 0, fuelCount = 0;
@@ -67,18 +77,18 @@ public class Forge : MonoBehaviour
             if (comp.materialType == MaterialType.Metal) metalCount++;
             else if (comp.materialType == MaterialType.Fuel) fuelCount++;
         }
-        Debug.Log($"[Forge] MetalCount={metalCount}, FuelCount={fuelCount}");
+        Debug.Log($"{LOG_PREFIX} MetalCount={metalCount}, FuelCount={fuelCount}");
 
         // 4) 최소 1개 이상 & 1:1 비율 검사
         if (metalCount == 0 || fuelCount == 0)
         {
-            Debug.LogWarning($"[Forge] 저장된 아이템 부족: Metal={metalCount}, Fuel={fuelCount} (최소 1개씩 필요)");
+            Debug.LogWarning($"{LOG_PREFIX} 저장된 아이템 부족: Metal={metalCount}, Fuel={fuelCount} (최소 1개씩 필요)");
             isForging = false;
             yield break;
         }
         if (metalCount != fuelCount)
         {
-            Debug.LogWarning($"[Forge] Forging 실패: Metal({metalCount})과 Fuel({fuelCount}) 비율이 1:1이 아닙니다.");
+            Debug.LogWarning($"{LOG_PREFIX} Forging 실패: Metal({metalCount})과 Fuel({fuelCount}) 비율이 1:1이 아닙니다.");
             isForging = false;
             yield break;
         }
@@ -87,7 +97,10 @@ public class Forge : MonoBehaviour
         if (forgeFire != null)
             forgeFire.OnFire = true;
 
-        // 6) 스탯 초기화 및 합산
+        // 6) 아이템 태그 변경 및 가라앉는 애니메이션 시작
+        StartItemSinkingAnimation(itemsToProcess);
+
+        // 7) 스탯 초기화 및 합산
         ResetStatsComponent();
         Color totalColor = Color.black;
         foreach (var comp in components)
@@ -99,10 +112,10 @@ public class Forge : MonoBehaviour
                 totalColor = AdditiveBlend(totalColor, comp.itemColor);
         }
 
-        Debug.Log("아이템을 처리 중입니다... 3초 후 새로운 아이템이 생성됩니다.");
+        Debug.Log($"{LOG_PREFIX} 아이템을 처리 중입니다... 3초 후 새로운 아이템이 생성됩니다.");
         yield return new WaitForSeconds(3f);
 
-        // 7) 새로운 아이템 생성
+        // 8) 새로운 아이템 생성
         GameObject newItem = Instantiate(itemPrefab, transform.position, Quaternion.identity);
         ItemComponent newItemComponent = newItem.GetComponent<ItemComponent>();
         Rigidbody newItemRb = newItem.GetComponent<Rigidbody>();
@@ -112,25 +125,39 @@ public class Forge : MonoBehaviour
             ApplyCombinedStats(newItemComponent, statsComponent, totalColor);
             foreach (var comp in components)
             {
-                newItemComponent.AddMaterial(comp);
-                newItemComponent.AddMaterialsFrom(comp);
+                if (comp.itemType == ItemType.Resource)
+                {
+                    // Resource라면 직접 MaterialUsed에 추가
+                    newItemComponent.AddMaterial(comp);
+                }
+                else
+                {
+                    // Resource가 아니라면 해당 아이템의 MaterialUsed에 있는 Resource들을 계승
+                    newItemComponent.AddMaterialsFrom(comp);
+                }
             }
             newItemRb.isKinematic = false;
             newItem.transform.SetParent(targetPosition);
             newItem.transform.localPosition = Vector3.zero;
-            Debug.Log($"[Forge] 새로운 아이템 생성: {newItemComponent}");
+            Debug.Log($"{LOG_PREFIX} 새로운 아이템 생성: {newItemComponent}");
         }
         else
         {
-            Debug.LogError("[Forge] 새로운 아이템에 ItemComponent가 없습니다!");
+            Debug.LogError($"{LOG_PREFIX} 새로운 아이템에 ItemComponent가 없습니다!");
         }
 
-        // 8) 원재료 파괴 및 리스트 초기화
-        foreach (var item in storedItems)
-            Destroy(item);
-        storedItems.Clear();
+        // 9) 원재료 파괴
+        foreach (var item in itemsToProcess)
+        {
+            if (item != null)
+            {
+                // DOTween Kill 처리
+                item.transform.DOKill();
+                Destroy(item);
+            }
+        }
 
-        // 9) 불꽃 소멸 및 파티클 연출
+        // 10) 불꽃 소멸 및 파티클 연출
         if (forgeFire != null)
             forgeFire.OnFire = false;
         sparkEffect.Play();
@@ -156,6 +183,9 @@ public class Forge : MonoBehaviour
         List<ItemComponent> list = new List<ItemComponent>();
         foreach (var go in items)
         {
+            // null 체크 추가
+            if (go == null) continue;
+            
             ItemComponent comp = go.GetComponent<ItemComponent>();
             if (comp != null)
                 list.Add(comp);
@@ -193,6 +223,80 @@ public class Forge : MonoBehaviour
         target.itemColor = color;
     }
 
+    /// <summary>
+    /// 가공 시작 시점에 트리거 영역 내 아이템들을 검사하여 반환
+    /// </summary>
+    private List<GameObject> GetItemsInTriggerArea()
+    {
+        List<GameObject> itemsFound = new List<GameObject>();
+        Collider forgeCollider = GetComponent<Collider>();
+        if (forgeCollider == null) return itemsFound;
+
+        // 트리거 영역 내의 모든 콜라이더 검사
+        Collider[] overlappingColliders = Physics.OverlapBox(
+            forgeCollider.bounds.center,
+            forgeCollider.bounds.extents,
+            transform.rotation
+        );
+
+        foreach (var collider in overlappingColliders)
+        {
+            if (!collider.CompareTag("Items")) continue;
+
+            var comp = collider.GetComponent<ItemComponent>();
+            if (comp == null) continue;
+
+            itemsFound.Add(collider.gameObject);
+            Debug.Log($"{LOG_PREFIX} 가공 대상: {collider.name} 아이템 발견 (MaterialType: {comp.materialType})");
+        }
+
+        Debug.Log($"{LOG_PREFIX} 트리거 영역에서 {itemsFound.Count}개의 가공 가능한 아이템을 발견했습니다.");
+        return itemsFound;
+    }
+
+    /// <summary>
+    /// 지정된 아이템들의 태그를 변경하고 가라앉는 애니메이션을 시작
+    /// </summary>
+    private void StartItemSinkingAnimation(List<GameObject> items)
+    {
+        foreach (var item in items)
+        {
+            if (item == null) continue;
+
+            // 태그 변경으로 수집 방지
+            item.tag = "ProcessingItem";
+
+            // Rigidbody 비활성화 (물리적 상호작용 방지)
+            Rigidbody rb = item.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+            }
+
+            // 가라앉는 애니메이션 (Y축으로 하강)
+            Vector3 startPos = item.transform.position;
+            Vector3 targetPos = startPos - Vector3.up * sinkDepth;
+
+            item.transform.DOMove(targetPos, sinkDuration)
+                .SetEase(Ease.InCubic);
+
+            // 페이드 아웃 효과 (Renderer가 있는 경우)
+            Renderer renderer = item.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Material mat = renderer.material;
+                if (mat.HasProperty("_Color"))
+                {
+                    Color originalColor = mat.color;
+                    mat.DOColor(new Color(originalColor.r, originalColor.g, originalColor.b, 0.3f), sinkDuration)
+                        .SetEase(Ease.InCubic);
+                }
+            }
+        }
+
+        Debug.Log($"{LOG_PREFIX} {items.Count}개 아이템의 가라앉는 애니메이션 시작");
+    }
+
     private Color AdditiveBlend(Color c1, Color c2)
     {
         return new Color(
@@ -212,22 +316,39 @@ public class Forge : MonoBehaviour
     {
         if (!other.CompareTag("Items")) return;
 
+        // 가공 중일 때는 새로운 아이템을 인식하지 않음
+        if (isForging)
+        {
+            Debug.Log($"{LOG_PREFIX} 가공 중이므로 {other.name} 아이템을 인식할 수 없습니다.");
+            return;
+        }
+
         var comp = other.GetComponent<ItemComponent>();
         if (comp == null) return;
+
+        // 저장소에는 Resource 타입만 허용
+        if (comp.itemType != ItemType.Resource)
+        {
+            Debug.Log($"{LOG_PREFIX} {other.name}은(는) Resource 타입이 아니므로 저장소에 추가할 수 없습니다. (현재 타입: {comp.itemType})");
+            return;
+        }
 
         if (!storedItems.Contains(other.gameObject))
         {
             storedItems.Add(other.gameObject);
-            Debug.Log($"[Forge] {other.name} 이(가) 저장소에 추가되었습니다.");
+            Debug.Log($"{LOG_PREFIX} {other.name} Resource 아이템이 저장소에 추가되었습니다. (MaterialType: {comp.materialType})");
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
+        // 가공 중일 때는 아이템을 리스트에서 제거하지 않음 (가라앉는 애니메이션으로 인한 트리거 이탈 방지)
+        if (isForging) return;
+        
         if (storedItems.Contains(other.gameObject))
         {
             storedItems.Remove(other.gameObject);
-            Debug.Log($"[Forge] {other.name} 이(가) 저장소에서 제거되었습니다.");
+            Debug.Log($"{LOG_PREFIX} {other.name} 이(가) 저장소에서 제거되었습니다.");
         }
     }
 }

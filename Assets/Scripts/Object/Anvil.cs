@@ -72,7 +72,7 @@ public class Anvil : MonoBehaviour
             }
         }
         
-        if (item == null || item.itemType != ItemType.Resource || item.materialType != MaterialType.Metal)
+        if (item == null || item.materialType != MaterialType.Metal)
         {
             Debug.Log($"{LOG_PREFIX} 적합하지 않은 아이템: {(item != null ? item.itemName : "null")}");
             return;

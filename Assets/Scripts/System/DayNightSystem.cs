@@ -117,8 +117,12 @@ public class DayNightSystem : MonoBehaviour
 
         if (currentHour < 6) // 밤 -> 새벽 (0시 ~ 6시)
         {
-            float t = (currentHour + 24f - 0f) / 6f;
-            currentAngle = Mathf.Lerp(night, dawn, t);
+            float t = currentHour / 6f; // 0~1로 정규화
+            
+            // 24시간 연속성: 24시(210도)에서 계속 회전하여 6시(-30도)까지
+            // 210도 -> 270도 -> 330도 -> 360도(=0도) -> -30도로 자연스럽게
+            float continuousNightAngle = 270f; // 24시를 270도로 간주하고 계속 회전
+            currentAngle = Mathf.LerpAngle(continuousNightAngle, dawn, t);
             currentColor = Color.Lerp(nightColor, dawnColor, t);
             currentIntensity = Mathf.Lerp(nightIntensity, dayIntensity * 0.5f, t);
         }

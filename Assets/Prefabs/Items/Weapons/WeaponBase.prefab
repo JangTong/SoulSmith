@@ -156,7 +156,7 @@ MonoBehaviour:
   description: 
   itemColor: {r: 1, g: 1, b: 1, a: 1}
   itemRarity: 0
-  itemType: 4
+  itemType: 0
   weaponType: 0
   partsType: 0
   armorType: 0

@@ -310,6 +310,94 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// Player를 로컬 좌표로 안전하게 이동 (기본 시간 1초)
+    /// </summary>
+    public void DOTweenMoveLocalTo(Vector3 targetLocalPosition)
+    {
+        DOTweenMoveLocalTo(targetLocalPosition, 1f);
+    }
+
+    /// <summary>
+    /// Player를 로컬 좌표로 안전하게 이동 (커스텀 시간)
+    /// </summary>
+    public void DOTweenMoveLocalTo(Vector3 targetLocalPosition, float duration)
+    {
+        if (isDOTweenMoving)
+        {
+            Debug.LogWarning($"{LOG_PREFIX} DOTweenMoveLocalTo: 이미 이동 중입니다");
+            return;
+        }
+
+        Debug.Log($"{LOG_PREFIX} DOTweenMoveLocalTo: {targetLocalPosition}로 로컬 이동 시작 (시간: {duration}초)");
+        
+        StopCurrentMoveTween();
+        isDOTweenMoving = true;
+        
+        // 현재 속도 초기화
+        ResetVelocity();
+        
+        currentMoveTween = transform.DOLocalMove(targetLocalPosition, duration)
+            .SetEase(Ease.InOutSine)
+            .OnComplete(() => {
+                isDOTweenMoving = false;
+                Debug.Log($"{LOG_PREFIX} DOTweenMoveLocalTo: 로컬 이동 완료");
+            })
+            .OnKill(() => {
+                isDOTweenMoving = false;
+                Debug.Log($"{LOG_PREFIX} DOTweenMoveLocalTo: 로컬 이동 중단됨");
+            });
+    }
+
+    /// <summary>
+    /// Player를 현재 방향 기준으로 X축(좌우)으로 상대 이동 (UnityEvent용)
+    /// 양수: 오른쪽으로, 음수: 왼쪽으로
+    /// </summary>
+    public void DOTweenMoveLocalToX(float x)
+    {
+        Vector3 targetPosition = transform.position + transform.right * x;
+        DOTweenMoveTo(targetPosition);
+        Debug.Log($"{LOG_PREFIX} DOTweenMoveLocalToX: 현재 방향 기준으로 X={x}만큼 이동 (좌우)");
+    }
+
+    /// <summary>
+    /// Player를 현재 방향 기준으로 Y축(상하)으로 상대 이동 (UnityEvent용)
+    /// 양수: 위로, 음수: 아래로
+    /// </summary>
+    public void DOTweenMoveLocalToY(float y)
+    {
+        Vector3 targetPosition = transform.position + transform.up * y;
+        DOTweenMoveTo(targetPosition);
+        Debug.Log($"{LOG_PREFIX} DOTweenMoveLocalToY: 현재 방향 기준으로 Y={y}만큼 이동 (상하)");
+    }
+
+    /// <summary>
+    /// Player를 현재 방향 기준으로 Z축(앞뒤)으로 상대 이동 (UnityEvent용)
+    /// 양수: 앞으로, 음수: 뒤로
+    /// </summary>
+    public void DOTweenMoveLocalToZ(float z)
+    {
+        Vector3 targetPosition = transform.position + transform.forward * z;
+        DOTweenMoveTo(targetPosition);
+        Debug.Log($"{LOG_PREFIX} DOTweenMoveLocalToZ: 현재 방향 기준으로 Z={z}만큼 이동 (앞뒤)");
+    }
+
+    /// <summary>
+    /// Player를 다른 Transform의 로컬 위치로 이동
+    /// </summary>
+    public void DOTweenMoveLocalToTransform(Transform target)
+    {
+        if (target == null)
+        {
+            Debug.LogWarning($"{LOG_PREFIX} DOTweenMoveLocalToTransform: target이 null입니다");
+            return;
+        }
+        
+        DOTweenMoveLocalTo(target.localPosition);
+    }
+
+
+
+    /// <summary>
     /// 현재 DOTween 이동 중단
     /// </summary>
     public void StopDOTweenMove()

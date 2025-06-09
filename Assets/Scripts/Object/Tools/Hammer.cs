@@ -46,24 +46,46 @@ public class Hammer : Tool
             if (!isPlayingSound)
                 ctrl.StartCoroutine(PlayHammerSound(hit.point));
 
-            // 5) 타격된 아이템의 CraftingTable 찾기
+            // 5) 타격된 아이템 처리
             Transform hitTransform = hit.collider.transform;
-            CraftingTable craftingTable = FindCraftingTable(hitTransform);
             
-            // CraftingTable이 있으면 HandleHammerHit 호출
-            if (craftingTable != null)
+            // WeaponBase 확인 (모루 위든 아니든 먼저 처리)
+            var weaponBase = hit.collider.GetComponent<WeaponBase>();
+            if (weaponBase == null)
+                weaponBase = hit.collider.GetComponentInParent<WeaponBase>();
+            
+            if (weaponBase != null)
             {
-                Debug.Log($"{LOG_PREFIX} CraftingTable 파츠 타격: {hit.collider.name}");
-                craftingTable.HandleHammerHit(hitTransform, hit.point);
+                Debug.Log($"{LOG_PREFIX} WeaponBase 타격: {hit.collider.name}, isOnAnvil: {weaponBase.isOnAnvil}");
+                
+                // 항상 충돌 카운트 증가 (모루 위에서만 실제로 증가됨)
+                int newCount = weaponBase.IncrementCollisionCount(hit.collider.name);
+                
+                // 모루 위 아이템이면 Anvil 제작 시도
+                if (weaponBase.isOnAnvil)
+                {
+                    Debug.Log($"{LOG_PREFIX} 모루 위 아이템 타격 - 현재 충돌 카운트: {newCount}");
+                    Anvil anvil = FindAnvilWithItem(weaponBase.gameObject);
+                    if (anvil != null)
+                    {
+                        Debug.Log($"{LOG_PREFIX} Anvil 제작 시도");
+                        anvil.TryCraft();
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"{LOG_PREFIX} 모루 위 아이템이지만 해당 Anvil을 찾을 수 없음");
+                    }
+                }
             }
-            // 다른 타격 가능 대상 처리
+            // WeaponBase가 없으면 CraftingTable 확인
             else
             {
-                var target = hit.collider.GetComponentInParent<WeaponBase>();
-                if (target != null)
+                CraftingTable craftingTable = FindCraftingTable(hitTransform);
+                
+                if (craftingTable != null)
                 {
-                    Debug.Log($"{LOG_PREFIX} WeaponBase 타격: {hit.collider.name}");
-                    target.IncrementCollisionCount(hit.collider.name);
+                    Debug.Log($"{LOG_PREFIX} CraftingTable 파츠 타격: {hit.collider.name}");
+                    craftingTable.HandleHammerHit(hitTransform, hit.point);
                 }
             }
 
@@ -102,6 +124,24 @@ public class Hammer : Tool
         }
         
         Debug.Log($"{LOG_PREFIX} FindCraftingTable: CraftingTable을 찾을 수 없음");
+        return null;
+    }
+
+    // 지정된 아이템을 관리하는 Anvil 찾기
+    private Anvil FindAnvilWithItem(GameObject item)
+    {
+        Anvil[] allAnvils = GameObject.FindObjectsOfType<Anvil>();
+        
+        foreach (var anvil in allAnvils)
+        {
+            if (anvil.GetObjectOnAnvil() == item)
+            {
+                Debug.Log($"{LOG_PREFIX} FindAnvilWithItem: 아이템 '{item.name}'을 관리하는 Anvil 발견");
+                return anvil;
+            }
+        }
+        
+        Debug.Log($"{LOG_PREFIX} FindAnvilWithItem: 아이템 '{item.name}'을 관리하는 Anvil을 찾을 수 없음");
         return null;
     }
 

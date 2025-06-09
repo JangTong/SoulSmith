@@ -261,5 +261,13 @@ public class Anvil : MonoBehaviour
         sparkEffect?.Play();
         Debug.Log($"{LOG_PREFIX} 제작 이펙트 재생");
     }
+
+    /// <summary>
+    /// 현재 모루 위에 있는 아이템 반환
+    /// </summary>
+    public GameObject GetObjectOnAnvil()
+    {
+        return objectOnAnvil;
+    }
 }
 

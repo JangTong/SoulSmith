@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 9032416052680939307}
   - component: {fileID: 7585392134709546037}
   - component: {fileID: 5567051841701819195}
+  - component: {fileID: 302690055522753416}
   m_Layer: 2
   m_Name: Player
   m_TagString: Player
@@ -270,6 +271,23 @@ MonoBehaviour:
   flightDuration: 0.5
   handLocalPos: {x: 0.5, y: -0.5, z: 0.5}
   handLocalRot: {x: -45, y: 0, z: 90}
+--- !u!114 &302690055522753416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2415249452239346836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e22c094655d42a04baf8a3ae6bed90fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 1
+  ease: 6
+  floatHeight: 0.3
+  floatDuration: 1.5
+  defaultSpinSpeed: 180
 --- !u!1 &2770044851560145537
 GameObject:
   m_ObjectHideFlags: 0

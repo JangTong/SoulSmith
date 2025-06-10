@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7e98cb788e9fc1f48a34809ac1565350, type: 3}
-  m_Name: Dagger_Blade
+  m_Name: One_Handed_Sword_Blade 1
   m_EditorClassIdentifier: 
-  weaponName: Dagger_Blade
+  weaponName: One_Handed_Sword_Blade
   weaponPrefab: {fileID: 4011853101262894429, guid: 9be4faf3aff9b1749ba17791d531b872,
     type: 3}
-  requiredCollisionCounts: 0100000001000000010000000100000001000000
-  weightFactor: 0.5
-  atkFactor: 0.8
-  defFactor: 0.3
-  basePrice: 20
-  priceMultiplier: 1.2 
+  requiredCollisionCounts: 0200000002000000020000000200000002000000
+  weightFactor: 0.8
+  atkFactor: 1.2
+  defFactor: 0.8
+  basePrice: 0
+  priceMultiplier: 1.5

@@ -27,12 +27,13 @@ public class RecipeBookController : MonoBehaviour
     [SerializeField] private TMP_Text rightWeaponNameText;
     [SerializeField] private TMP_Text rightWeaponDescriptionText;
     
-    [Header("3D 오브젝트 표시")]
-    [SerializeField] private RectTransform leftWeaponDisplayRect;
-    [SerializeField] private RectTransform rightWeaponDisplayRect;
-    [SerializeField] private Camera uiCamera; // UI 카메라 참조
-    [SerializeField] private float weaponSpawnDistance = 2f; // 카메라로부터의 거리
-    [SerializeField] private float rotationSpeed = 30f;
+    [Header("3D 무기 표시")]
+    [SerializeField] private RectTransform leftWeaponContainer;
+    [SerializeField] private RectTransform rightWeaponContainer;
+    [SerializeField] private float weaponScale = 20f;
+    [SerializeField] private Vector3 weaponOffset = Vector3.zero;
+    [SerializeField] private float rotationSensitivity = 0.5f;
+    [SerializeField] private bool invertY = true; // Y축 반전 옵션
     
     [Header("네비게이션")]
     [SerializeField] private Button prevButton;
@@ -48,16 +49,20 @@ public class RecipeBookController : MonoBehaviour
     [Header("애니메이션 설정")]
     [SerializeField] private float uiOpenDuration = 0.8f;
     [SerializeField] private float uiCloseDuration = 0.5f;
-    [SerializeField] private float weaponSpawnDuration = 0.6f;
     [SerializeField] private float pageFlipDuration = 0.7f;
     
     // 런타임 데이터
     private List<WeaponRecipe> loadedRecipes = new List<WeaponRecipe>();
     private int currentPageIndex = 0;
     private bool isTransitioning = false;
+    private bool isUIActive = false;
     private GameObject currentLeftWeapon;
     private GameObject currentRightWeapon;
-    private bool isUIActive = false;
+    
+    // 드래그 회전 관련
+    private bool isDragging = false;
+    private Vector2 lastMousePosition;
+    private GameObject draggedWeapon;
     
     // 애니메이션 관련
     private Sequence uiAnimationSequence;
@@ -80,7 +85,7 @@ public class RecipeBookController : MonoBehaviour
     private void Update()
     {
         HandleInput();
-        RotateWeaponDisplays();
+        HandleWeaponDrag();
     }
     
     private void InitializeUI()
@@ -121,18 +126,6 @@ public class RecipeBookController : MonoBehaviour
             rightPage.blocksRaycasts = true;
         }
         
-        // 3D 오브젝트가 스폰될 위치 검증
-        if (leftWeaponDisplayRect == null || rightWeaponDisplayRect == null)
-        {
-            Debug.LogError($"{LOG_PREFIX} leftWeaponDisplayRect 또는 rightWeaponDisplayRect가 없습니다.");
-        }
-        
-        if (uiCamera == null)
-        {
-            uiCamera = Camera.main;
-            Debug.LogWarning($"{LOG_PREFIX} uiCamera가 설정되지 않아 Main Camera를 사용합니다.");
-        }
-        
         Debug.Log($"{LOG_PREFIX} UI 초기화 완료");
     }
     
@@ -163,7 +156,6 @@ public class RecipeBookController : MonoBehaviour
                 {
                     Debug.Log($"{LOG_PREFIX} 레시피 {i}: {recipe.weaponName}");
                     Debug.Log($"{LOG_PREFIX} - 히트포인트: [{string.Join(",", recipe.requiredCollisionCounts)}]");
-                    Debug.Log($"{LOG_PREFIX} - 무기 프리팹: {(recipe.weaponPrefab != null ? recipe.weaponPrefab.name : "null")}");
                 }
                 else
                 {
@@ -294,34 +286,6 @@ public class RecipeBookController : MonoBehaviour
         Debug.Log($"{LOG_PREFIX} 페이지 변경: {currentPageIndex}/{maxPage}");
     }
     
-    private IEnumerator TransitionToPage()
-    {
-        isTransitioning = true;
-        
-        // 페이지 페이드 아웃
-        var fadeOutSequence = DOTween.Sequence();
-        if (leftPage != null)
-            fadeOutSequence.Join(leftPage.DOFade(0f, pageTransitionDuration * 0.5f));
-        if (rightPage != null)
-            fadeOutSequence.Join(rightPage.DOFade(0f, pageTransitionDuration * 0.5f));
-        
-        yield return fadeOutSequence.WaitForCompletion();
-        
-        // 페이지 내용 업데이트
-        UpdateCurrentPage();
-        
-        // 페이지 페이드 인
-        var fadeInSequence = DOTween.Sequence();
-        if (leftPage != null)
-            fadeInSequence.Join(leftPage.DOFade(1f, pageTransitionDuration * 0.5f));
-        if (rightPage != null)
-            fadeInSequence.Join(rightPage.DOFade(1f, pageTransitionDuration * 0.5f));
-        
-        yield return fadeInSequence.WaitForCompletion();
-        
-        isTransitioning = false;
-    }
-    
     private void UpdateCurrentPage()
     {
         if (loadedRecipes.Count == 0)
@@ -429,83 +393,6 @@ public class RecipeBookController : MonoBehaviour
         UpdateWeaponDisplay(recipe, isLeftPage);
     }
     
-    private void UpdateWeaponDisplay(WeaponRecipe recipe, bool isLeftPage)
-    {
-        if (recipe == null || recipe.weaponPrefab == null) return;
-        
-        var displayRect = isLeftPage ? leftWeaponDisplayRect : rightWeaponDisplayRect;
-        var currentWeapon = isLeftPage ? currentLeftWeapon : currentRightWeapon;
-        
-        if (displayRect == null)
-        {
-            Debug.LogWarning($"{LOG_PREFIX} {(isLeftPage ? "왼쪽" : "오른쪽")} 무기 표시 RectTransform이 없습니다.");
-            return;
-        }
-        
-        if (uiCamera == null)
-        {
-            Debug.LogWarning($"{LOG_PREFIX} UI 카메라가 없습니다.");
-            return;
-        }
-        
-        // 기존 무기 제거
-        if (currentWeapon != null)
-        {
-            DestroyImmediate(currentWeapon);
-        }
-        
-        try
-        {
-            // RectTransform의 월드 좌표 계산
-            Vector3 worldPosition = GetWorldPositionFromRect(displayRect);
-            
-            // 새 무기 스폰 (월드 좌표에)
-            var weaponObj = Instantiate(recipe.weaponPrefab);
-            weaponObj.transform.position = worldPosition;
-            weaponObj.transform.rotation = Quaternion.identity;
-            weaponObj.transform.localScale = Vector3.one * 0.5f; // UI에 맞게 크기 조절
-            
-            // 물리 컴포넌트 비활성화 (표시용)
-            var rigidbody = weaponObj.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-            {
-                rigidbody.isKinematic = true;
-            }
-            
-            var colliders = weaponObj.GetComponentsInChildren<Collider>();
-            foreach (var collider in colliders)
-            {
-                collider.enabled = false;
-            }
-            
-            // 애니메이션 적용
-            AnimateWeaponSpawn(weaponObj, isLeftPage);
-            
-            // 참조 저장
-            if (isLeftPage)
-                currentLeftWeapon = weaponObj;
-            else
-                currentRightWeapon = weaponObj;
-            
-            Debug.Log($"{LOG_PREFIX} {(isLeftPage ? "왼쪽" : "오른쪽")} 무기 생성 완료: {recipe.weaponName} at {worldPosition}");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"{LOG_PREFIX} 무기 생성 실패: {e.Message}");
-        }
-    }
-    
-    private Vector3 GetWorldPositionFromRect(RectTransform rectTransform)
-    {
-        // RectTransform의 중심을 스크린 좌표로 변환
-        Vector3 screenPosition = RectTransformUtility.WorldToScreenPoint(uiCamera, rectTransform.position);
-        
-        // 스크린 좌표를 월드 좌표로 변환 (카메라로부터 일정 거리에)
-        Vector3 worldPosition = uiCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, weaponSpawnDistance));
-        
-        return worldPosition;
-    }
-    
     private void ClearPageContent(bool isLeftPage)
     {
         // 텍스트 클리어
@@ -535,6 +422,60 @@ public class RecipeBookController : MonoBehaviour
         }
         
         // 3D 무기 제거
+        ClearWeaponDisplay(isLeftPage);
+    }
+    
+    private void UpdateWeaponDisplay(WeaponRecipe recipe, bool isLeftPage)
+    {
+        if (recipe == null || recipe.weaponPrefab == null) return;
+        
+        var container = isLeftPage ? leftWeaponContainer : rightWeaponContainer;
+        if (container == null) return;
+        
+        // 기존 무기 제거
+        ClearWeaponDisplay(isLeftPage);
+        
+        try
+        {
+            // 3D 무기를 RectTransform 자식으로 생성
+            var weaponObj = Instantiate(recipe.weaponPrefab, container);
+            weaponObj.transform.localPosition = weaponOffset;
+            weaponObj.transform.localRotation = Quaternion.identity;
+            weaponObj.transform.localScale = Vector3.one * weaponScale;
+            
+            Debug.Log($"{LOG_PREFIX} 무기 스케일 적용: {weaponObj.transform.localScale}, 실제 스케일: {weaponObj.transform.lossyScale}");
+            
+            // UI Layer 설정 (Canvas와 동일한 레이어)
+            SetLayerRecursively(weaponObj, container.gameObject.layer);
+            
+            // 물리 컴포넌트 비활성화
+            var rigidbody = weaponObj.GetComponent<Rigidbody>();
+            if (rigidbody != null)
+                rigidbody.isKinematic = true;
+            
+            var colliders = weaponObj.GetComponentsInChildren<Collider>();
+            foreach (var col in colliders)
+                col.enabled = false;
+            
+            // 참조 저장
+            if (isLeftPage)
+                currentLeftWeapon = weaponObj;
+            else
+                currentRightWeapon = weaponObj;
+            
+            // 드래그 회전 이벤트 추가
+            AddDragRotation(container, weaponObj);
+            
+            Debug.Log($"{LOG_PREFIX} {(isLeftPage ? "왼쪽" : "오른쪽")} 무기 생성: {recipe.weaponName}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"{LOG_PREFIX} 무기 생성 실패: {e.Message}");
+        }
+    }
+    
+    private void ClearWeaponDisplay(bool isLeftPage)
+    {
         var currentWeapon = isLeftPage ? currentLeftWeapon : currentRightWeapon;
         if (currentWeapon != null)
         {
@@ -546,21 +487,149 @@ public class RecipeBookController : MonoBehaviour
         }
     }
     
-    private void RotateWeaponDisplays()
+    private void SetLayerRecursively(GameObject obj, int layer)
     {
-        if (rotationSpeed <= 0f) return;
-        
-        if (currentLeftWeapon != null)
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
         {
-            currentLeftWeapon.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0, Space.Self);
-        }
-        
-        if (currentRightWeapon != null)
-        {
-            currentRightWeapon.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0, Space.Self);
+            SetLayerRecursively(child.gameObject, layer);
         }
     }
     
+    private void AddDragRotation(RectTransform container, GameObject weaponObj)
+    {
+        // EventTrigger 컴포넌트 추가
+        EventTrigger trigger = container.GetComponent<EventTrigger>();
+        if (trigger == null)
+            trigger = container.gameObject.AddComponent<EventTrigger>();
+        
+        // 기존 이벤트 클리어
+        trigger.triggers.Clear();
+        
+        Vector2 lastMousePosition = Vector2.zero;
+        
+        // 클릭 감지 (테스트용)
+        EventTrigger.Entry pointerDownEntry = new EventTrigger.Entry();
+        pointerDownEntry.eventID = EventTriggerType.PointerDown;
+        pointerDownEntry.callback.AddListener((eventData) =>
+        {
+            PointerEventData pointerData = eventData as PointerEventData;
+            lastMousePosition = pointerData.position;
+            Debug.Log($"{LOG_PREFIX} 무기 클릭 감지!");
+        });
+        trigger.triggers.Add(pointerDownEntry);
+        
+        // 마우스 드래그 중
+        EventTrigger.Entry pointerMoveEntry = new EventTrigger.Entry();
+        pointerMoveEntry.eventID = EventTriggerType.Drag;
+        pointerMoveEntry.callback.AddListener((eventData) =>
+        {
+            if (weaponObj == null) return;
+            
+            PointerEventData pointerData = eventData as PointerEventData;
+            if (pointerData.dragging)
+            {
+                Vector2 currentMousePosition = pointerData.position;
+                Vector2 deltaPosition = currentMousePosition - lastMousePosition;
+                
+                // X축 움직임을 Y축 회전으로 변환
+                float rotationY = deltaPosition.x * rotationSensitivity;
+                weaponObj.transform.Rotate(0, rotationY, 0, Space.Self);
+                
+                lastMousePosition = currentMousePosition;
+                Debug.Log($"{LOG_PREFIX} 무기 회전: {rotationY}");
+            }
+        });
+        trigger.triggers.Add(pointerMoveEntry);
+        
+        Debug.Log($"{LOG_PREFIX} 무기 드래그 회전 이벤트 추가");
+    }
+    
+    private void HandleWeaponDrag()
+    {
+        if (!isUIActive) return;
+        
+        if (Input.GetMouseButtonDown(0))
+        {
+            // 마우스 클릭 시작 - 화면을 반으로 나누어서 왼쪽/오른쪽 구분
+            Vector2 mousePos = Input.mousePosition;
+            float screenCenter = Screen.width * 0.5f;
+            
+            if (mousePos.x < screenCenter && currentLeftWeapon != null)
+            {
+                // 화면 왼쪽 = 왼쪽 무기
+                isDragging = true;
+                draggedWeapon = currentLeftWeapon;
+                lastMousePosition = mousePos;
+                Debug.Log($"{LOG_PREFIX} 왼쪽 무기 드래그 시작");
+            }
+            else if (mousePos.x >= screenCenter && currentRightWeapon != null)
+            {
+                // 화면 오른쪽 = 오른쪽 무기
+                isDragging = true;
+                draggedWeapon = currentRightWeapon;
+                lastMousePosition = mousePos;
+                Debug.Log($"{LOG_PREFIX} 오른쪽 무기 드래그 시작");
+            }
+        }
+        
+        if (Input.GetMouseButton(0) && isDragging && draggedWeapon != null)
+        {
+            // 드래그 중 - Unity Scene View 스타일 3축 자유 회전
+            Vector2 currentMousePos = Input.mousePosition;
+            Vector2 deltaPosition = currentMousePos - lastMousePosition;
+            
+            if (deltaPosition.magnitude > 0.1f) // 최소 움직임 임계값
+            {
+                // 마우스 X 움직임 → Y축 회전 (좌우 회전)
+                float rotationY = deltaPosition.x * rotationSensitivity;
+                
+                // 마우스 Y 움직임 → X축 회전 (위아래 회전)
+                float rotationX = deltaPosition.y * rotationSensitivity * (invertY ? -1 : 1);
+                
+                // World Space에서 회전 적용 (더 자연스러운 회전)
+                draggedWeapon.transform.Rotate(Vector3.up, rotationY, Space.World);
+                draggedWeapon.transform.Rotate(Vector3.right, rotationX, Space.World);
+                
+                lastMousePosition = currentMousePos;
+            }
+        }
+        
+        if (Input.GetMouseButtonUp(0))
+        {
+            // 드래그 종료
+            isDragging = false;
+            draggedWeapon = null;
+            Debug.Log($"{LOG_PREFIX} 무기 드래그 종료");
+        }
+    }
+    
+    private bool IsMouseOverWeapon(RectTransform container, Vector2 mousePosition)
+    {
+        if (container == null) 
+        {
+            Debug.Log($"{LOG_PREFIX} 컨테이너가 null입니다");
+            return false;
+        }
+        
+        // Canvas의 카메라 찾기
+        Canvas canvas = container.GetComponentInParent<Canvas>();
+        Camera uiCamera = null;
+        
+        if (canvas != null)
+        {
+            if (canvas.renderMode == RenderMode.ScreenSpaceCamera)
+                uiCamera = canvas.worldCamera;
+            else if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                uiCamera = null;
+        }
+        
+        bool result = RectTransformUtility.RectangleContainsScreenPoint(container, mousePosition, uiCamera);
+        Debug.Log($"{LOG_PREFIX} 컨테이너 {container.name}, 마우스: {mousePosition}, 카메라: {(uiCamera != null ? uiCamera.name : "null")}, 결과: {result}");
+        
+        return result;
+    }
+
     private void UpdatePageNumber()
     {
         if (pageNumberText != null && loadedRecipes.Count > 0)
@@ -594,16 +663,11 @@ public class RecipeBookController : MonoBehaviour
         // DOTween 시퀀스 정리
         KillUIAnimations();
         
-        // 기존 무기 정리
+        // 3D 무기 정리
         if (currentLeftWeapon != null)
-        {
             DestroyImmediate(currentLeftWeapon);
-        }
-        
         if (currentRightWeapon != null)
-        {
             DestroyImmediate(currentRightWeapon);
-        }
         
         Debug.Log($"{LOG_PREFIX} RecipeBookController 정리 완료");
     }
@@ -714,21 +778,6 @@ public class RecipeBookController : MonoBehaviour
         yield return fadeInSequence.WaitForCompletion();
         
         isTransitioning = false;
-    }
-    
-    private void AnimateWeaponSpawn(GameObject weaponObj, bool isLeftPage)
-    {
-        if (weaponObj == null) return;
-        
-        // 시작 상태 설정
-        weaponObj.transform.localScale = Vector3.zero;
-        
-        // 스폰 애니메이션
-        var spawnSequence = DOTween.Sequence();
-        spawnSequence.Append(weaponObj.transform.DOScale(Vector3.one * 1.2f, weaponSpawnDuration * 0.7f).SetEase(Ease.OutBack));
-        spawnSequence.Append(weaponObj.transform.DOScale(Vector3.one, weaponSpawnDuration * 0.3f).SetEase(Ease.InOutQuad));
-        
-        Debug.Log($"{LOG_PREFIX} {(isLeftPage ? "왼쪽" : "오른쪽")} 무기 스폰 애니메이션 시작");
     }
     
     private void KillUIAnimations()

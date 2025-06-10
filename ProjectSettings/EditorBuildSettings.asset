@@ -5,15 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/ExtraAsset/VertexModeler/LowpolyCharacterRio/Scenes/DemoScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 0
-    path: Packages/com.occasoftware.super-simple-skybox/Samples/Demo/Levels/Skybox_P.unity
-    guid: d1c3109bdb54ad54c8a2b2838528e640
   - enabled: 1
-    path: Assets/ExtraAsset/Bublisher/3D Stylized Animated Dogs Kit/DemoScene/SampleScene.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
+    path: Assets/Scenes/SoulSmith_MainScene.unity
+    guid: 60a62152784e1ef4c848bb0c27fe94d6
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 35d36c3f4b73416418f75ba5a75a66dd,
       type: 2}

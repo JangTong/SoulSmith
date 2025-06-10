@@ -34,6 +34,11 @@ MonoBehaviour:
     m_SerializedLabels:
     - DialogueData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 93b0f71df1c953046893615e6a2a85c9
+    m_Address: Assets/Addressables/DialogueData/Tutorial/TutorialDialogue_2.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 21485ce96ed070d46a2b2ef946a27933, type: 2}
   m_SchemaSet:

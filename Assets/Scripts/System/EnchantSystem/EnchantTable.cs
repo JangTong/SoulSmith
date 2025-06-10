@@ -30,17 +30,16 @@ public class EnchantTable : MonoBehaviour
     private PlayerController playerController;
     private ItemInteractionController itemController;
 
-    private void Awake()
-    {
-        // 컴포넌트 캐싱 (성능 최적화)
-        playerController = PlayerController.Instance;
-        itemController = ItemInteractionController.Instance;
-    }
-
     private void Start()
     {
         if (enchantUI != null) 
             enchantUI.SetActive(false);
+            
+        // Start에서 Instance 가져오기 (Awake보다 늦게 실행됨)
+        playerController = PlayerController.Instance;
+        itemController = ItemInteractionController.Instance;
+        
+        Debug.Log($"{LOG_PREFIX} Start: PlayerController = {playerController?.name}, ItemController = {itemController?.name}");
     }
 
     private void Update()
@@ -125,6 +124,8 @@ public class EnchantTable : MonoBehaviour
     /// </summary>
     private void OpenEnchantUI()
     {
+        Debug.Log($"{LOG_PREFIX} OpenEnchantUI called");
+        
         if (enchantUI != null)
             enchantUI.SetActive(true);
             
@@ -132,7 +133,12 @@ public class EnchantTable : MonoBehaviour
         
         if (playerController != null && cameraEnchantViewPoint != null)
         {
+            Debug.Log($"{LOG_PREFIX} Moving camera to enchant view point");
             playerController.cam.MoveTo(cameraEnchantViewPoint, cameraMoveDuration);
+        }
+        else
+        {
+            Debug.LogError($"{LOG_PREFIX} Cannot move camera - PlayerController: {playerController}, cameraEnchantViewPoint: {cameraEnchantViewPoint}");
         }
     }
 
@@ -141,6 +147,8 @@ public class EnchantTable : MonoBehaviour
     /// </summary>
     private void CloseEnchantUI()
     {
+        Debug.Log($"{LOG_PREFIX} CloseEnchantUI called");
+        
         if (enchantUI != null)
             enchantUI.SetActive(false);
             
@@ -149,7 +157,12 @@ public class EnchantTable : MonoBehaviour
         
         if (playerController != null)
         {
+            Debug.Log($"{LOG_PREFIX} Resetting camera to default");
             playerController.cam.ResetToDefault(cameraMoveDuration);
+        }
+        else
+        {
+            Debug.LogError($"{LOG_PREFIX} Cannot reset camera - PlayerController is null");
         }
         
         Debug.Log($"{LOG_PREFIX} Enchant UI closed");

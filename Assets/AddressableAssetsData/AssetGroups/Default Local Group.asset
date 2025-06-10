@@ -16,7 +16,17 @@ MonoBehaviour:
   m_Data:
     m_SerializedData: []
   m_GUID: d11c3b2444732c7449d15d55c8a4e408
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 2616ef4b2911aeb4fad4f27172117926
+    m_Address: Assets/Addressables/NpcSchedule/TestCustomerSchedule.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9979e413e35c9a24f8632287ab5e22c8
+    m_Address: Assets/Addressables/NpcSchedule/TestSchedule.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 21485ce96ed070d46a2b2ef946a27933, type: 2}
   m_SchemaSet:

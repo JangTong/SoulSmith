@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.EventSystems;
 using TMPro;
 using DG.Tweening;
 using System.Collections.Generic;
@@ -27,8 +28,10 @@ public class RecipeBookController : MonoBehaviour
     [SerializeField] private TMP_Text rightWeaponDescriptionText;
     
     [Header("3D 오브젝트 표시")]
-    [SerializeField] private Transform leftWeaponDisplay;
-    [SerializeField] private Transform rightWeaponDisplay;
+    [SerializeField] private RectTransform leftWeaponDisplayRect;
+    [SerializeField] private RectTransform rightWeaponDisplayRect;
+    [SerializeField] private Camera uiCamera; // UI 카메라 참조
+    [SerializeField] private float weaponSpawnDistance = 2f; // 카메라로부터의 거리
     [SerializeField] private float rotationSpeed = 30f;
     
     [Header("네비게이션")]
@@ -39,17 +42,39 @@ public class RecipeBookController : MonoBehaviour
     [Header("레시피 라벨")]
     [SerializeField] private string recipeLabel = "WeaponRecipe";
     
+    [Header("UI 컨테이너")]
+    [SerializeField] private GameObject recipeBookUI;
+    
+    [Header("애니메이션 설정")]
+    [SerializeField] private float uiOpenDuration = 0.8f;
+    [SerializeField] private float uiCloseDuration = 0.5f;
+    [SerializeField] private float weaponSpawnDuration = 0.6f;
+    [SerializeField] private float pageFlipDuration = 0.7f;
+    
     // 런타임 데이터
     private List<WeaponRecipe> loadedRecipes = new List<WeaponRecipe>();
     private int currentPageIndex = 0;
     private bool isTransitioning = false;
     private GameObject currentLeftWeapon;
     private GameObject currentRightWeapon;
+    private bool isUIActive = false;
+    
+    // 애니메이션 관련
+    private Sequence uiAnimationSequence;
+    private Vector3 originalLeftPageScale;
+    private Vector3 originalRightPageScale;
+    private Vector3 originalUIScale;
     
     private void Start()
     {
         InitializeUI();
         LoadRecipes();
+        
+        // 초기에는 UI 비활성화
+        if (recipeBookUI != null)
+        {
+            recipeBookUI.SetActive(false);
+        }
     }
     
     private void Update()
@@ -62,10 +87,24 @@ public class RecipeBookController : MonoBehaviour
     {
         // 버튼 이벤트 연결
         if (prevButton != null)
+        {
             prevButton.onClick.AddListener(() => ChangePage(-1));
+            AddButtonHoverEffect(prevButton);
+        }
         
         if (nextButton != null)
+        {
             nextButton.onClick.AddListener(() => ChangePage(1));
+            AddButtonHoverEffect(nextButton);
+        }
+        
+        // 원래 스케일 저장
+        if (recipeBookUI != null)
+            originalUIScale = recipeBookUI.transform.localScale;
+        if (leftPage != null)
+            originalLeftPageScale = leftPage.transform.localScale;
+        if (rightPage != null)
+            originalRightPageScale = rightPage.transform.localScale;
         
         // 초기 페이지 설정
         if (leftPage != null)
@@ -82,6 +121,18 @@ public class RecipeBookController : MonoBehaviour
             rightPage.blocksRaycasts = true;
         }
         
+        // 3D 오브젝트가 스폰될 위치 검증
+        if (leftWeaponDisplayRect == null || rightWeaponDisplayRect == null)
+        {
+            Debug.LogError($"{LOG_PREFIX} leftWeaponDisplayRect 또는 rightWeaponDisplayRect가 없습니다.");
+        }
+        
+        if (uiCamera == null)
+        {
+            uiCamera = Camera.main;
+            Debug.LogWarning($"{LOG_PREFIX} uiCamera가 설정되지 않아 Main Camera를 사용합니다.");
+        }
+        
         Debug.Log($"{LOG_PREFIX} UI 초기화 완료");
     }
     
@@ -92,7 +143,7 @@ public class RecipeBookController : MonoBehaviour
     
     private IEnumerator LoadRecipesAsync()
     {
-        Debug.Log($"{LOG_PREFIX} 레시피 로드 시작");
+        Debug.Log($"{LOG_PREFIX} 레시피 로드 시작 - 라벨: {recipeLabel}");
         
         var handle = Addressables.LoadAssetsAsync<WeaponRecipe>(recipeLabel, null);
         yield return handle;
@@ -104,18 +155,48 @@ public class RecipeBookController : MonoBehaviour
             
             Debug.Log($"{LOG_PREFIX} {loadedRecipes.Count}개 레시피 로드 완료");
             
+            // 로드된 레시피 목록 출력
+            for (int i = 0; i < loadedRecipes.Count; i++)
+            {
+                var recipe = loadedRecipes[i];
+                if (recipe != null)
+                {
+                    Debug.Log($"{LOG_PREFIX} 레시피 {i}: {recipe.weaponName}");
+                    Debug.Log($"{LOG_PREFIX} - 히트포인트: [{string.Join(",", recipe.requiredCollisionCounts)}]");
+                    Debug.Log($"{LOG_PREFIX} - 무기 프리팹: {(recipe.weaponPrefab != null ? recipe.weaponPrefab.name : "null")}");
+                }
+                else
+                {
+                    Debug.LogWarning($"{LOG_PREFIX} 레시피 {i}: null");
+                }
+            }
+            
             // 첫 번째 페이지 표시
             UpdateCurrentPage();
         }
         else
         {
             Debug.LogError($"{LOG_PREFIX} 레시피 로드 실패: {handle.OperationException}");
+            
+            // Addressable 설정 확인 메시지
+            Debug.LogError($"{LOG_PREFIX} Addressable 설정 확인 사항:");
+            Debug.LogError($"{LOG_PREFIX} 1. WeaponRecipe 에셋에 '{recipeLabel}' 라벨이 설정되어 있는지 확인");
+            Debug.LogError($"{LOG_PREFIX} 2. Addressable Groups에서 빌드되었는지 확인");
+            Debug.LogError($"{LOG_PREFIX} 3. Window > Asset Management > Addressables > Groups 에서 확인");
         }
     }
     
     private void HandleInput()
     {
-        if (isTransitioning) return;
+        // R키로 UI 열기/닫기
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ToggleRecipeBookUI();
+            return;
+        }
+        
+        // UI가 비활성화되어 있으면 페이지 네비게이션 입력 무시
+        if (!isUIActive || isTransitioning) return;
         
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
@@ -125,21 +206,92 @@ public class RecipeBookController : MonoBehaviour
         {
             ChangePage(1);
         }
+        
+        // ESC키로 UI 닫기
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            CloseRecipeBookUI();
+        }
+    }
+    
+    private void ToggleRecipeBookUI()
+    {
+        if (isUIActive)
+        {
+            CloseRecipeBookUI();
+        }
+        else
+        {
+            OpenRecipeBookUI();
+        }
+    }
+    
+    private void OpenRecipeBookUI()
+    {
+        if (isUIActive || recipeBookUI == null) return;
+        
+        Debug.Log($"{LOG_PREFIX} Recipe Book UI 열기");
+        isUIActive = true;
+        
+        // PlayerController의 UI 상태 활성화
+        var playerController = FindObjectOfType<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.ToggleUI(true);
+        }
+        
+        // UIManager 비활성화
+        var uiManager = FindObjectOfType<UIManager>();
+        if (uiManager != null)
+        {
+            uiManager.SetFocusActive(false);
+        }
+        
+        recipeBookUI.SetActive(true);
+        UpdateCurrentPage();
+        PlayOpenAnimation();
+    }
+    
+    private void CloseRecipeBookUI()
+    {
+        if (!isUIActive || recipeBookUI == null) return;
+        
+        Debug.Log($"{LOG_PREFIX} Recipe Book UI 닫기");
+        
+        // PlayerController의 UI 상태 비활성화
+        var playerController = FindObjectOfType<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.ToggleUI(false);
+        }
+        
+        // UIManager 활성화
+        var uiManager = FindObjectOfType<UIManager>();
+        if (uiManager != null)
+        {
+            uiManager.SetFocusActive(true);
+        }
+        
+        PlayCloseAnimation(() =>
+        {
+            recipeBookUI.SetActive(false);
+            isUIActive = false;
+        });
     }
     
     private void ChangePage(int direction)
     {
         if (isTransitioning || loadedRecipes.Count == 0) return;
         
-        int newIndex = currentPageIndex + direction;
+        int targetPage = currentPageIndex + direction;
+        int maxPage = Mathf.CeilToInt(loadedRecipes.Count / 2f) - 1;
         
-        // 페이지 범위 확인 (2개씩 표시하므로 최대 인덱스는 (총 개수 - 1) / 2)
-        int maxPageIndex = Mathf.Max(0, (loadedRecipes.Count - 1) / 2);
+        if (targetPage < 0 || targetPage > maxPage) return;
         
-        if (newIndex < 0 || newIndex > maxPageIndex) return;
+        currentPageIndex = targetPage;
+        StartCoroutine(TransitionToPageAnimated());
         
-        currentPageIndex = newIndex;
-        StartCoroutine(TransitionToPage());
+        Debug.Log($"{LOG_PREFIX} 페이지 변경: {currentPageIndex}/{maxPage}");
     }
     
     private IEnumerator TransitionToPage()
@@ -147,59 +299,86 @@ public class RecipeBookController : MonoBehaviour
         isTransitioning = true;
         
         // 페이지 페이드 아웃
-        var fadeOutTween = DOTween.To(() => 1f, x => 
-        {
-            if (leftPage != null) leftPage.alpha = x;
-            if (rightPage != null) rightPage.alpha = x;
-        }, 0f, pageTransitionDuration * 0.5f);
+        var fadeOutSequence = DOTween.Sequence();
+        if (leftPage != null)
+            fadeOutSequence.Join(leftPage.DOFade(0f, pageTransitionDuration * 0.5f));
+        if (rightPage != null)
+            fadeOutSequence.Join(rightPage.DOFade(0f, pageTransitionDuration * 0.5f));
         
-        yield return fadeOutTween.WaitForCompletion();
+        yield return fadeOutSequence.WaitForCompletion();
         
         // 페이지 내용 업데이트
         UpdateCurrentPage();
         
         // 페이지 페이드 인
-        var fadeInTween = DOTween.To(() => 0f, x => 
-        {
-            if (leftPage != null) leftPage.alpha = x;
-            if (rightPage != null) rightPage.alpha = x;
-        }, 1f, pageTransitionDuration * 0.5f);
+        var fadeInSequence = DOTween.Sequence();
+        if (leftPage != null)
+            fadeInSequence.Join(leftPage.DOFade(1f, pageTransitionDuration * 0.5f));
+        if (rightPage != null)
+            fadeInSequence.Join(rightPage.DOFade(1f, pageTransitionDuration * 0.5f));
         
-        yield return fadeInTween.WaitForCompletion();
+        yield return fadeInSequence.WaitForCompletion();
         
         isTransitioning = false;
     }
     
     private void UpdateCurrentPage()
     {
-        if (loadedRecipes.Count == 0) return;
-        
-        // 왼쪽 페이지 업데이트
-        int leftIndex = currentPageIndex * 2;
-        if (leftIndex < loadedRecipes.Count)
+        if (loadedRecipes.Count == 0)
         {
-            UpdatePageContent(loadedRecipes[leftIndex], true);
+            Debug.LogWarning($"{LOG_PREFIX} 로드된 레시피가 없습니다.");
+            ClearPageContent(true);
+            ClearPageContent(false);
+            return;
+        }
+        
+        Debug.Log($"{LOG_PREFIX} 페이지 업데이트 - 현재 페이지: {currentPageIndex}");
+        
+        // 왼쪽 페이지 (currentPageIndex * 2)
+        int leftRecipeIndex = currentPageIndex * 2;
+        if (leftRecipeIndex < loadedRecipes.Count)
+        {
+            var leftRecipe = loadedRecipes[leftRecipeIndex];
+            if (leftRecipe != null)
+            {
+                Debug.Log($"{LOG_PREFIX} 왼쪽 페이지에 레시피 표시: {leftRecipe.weaponName}");
+                UpdatePageContent(leftRecipe, true);
+            }
+            else
+            {
+                Debug.Log($"{LOG_PREFIX} 왼쪽 페이지 레시피가 null");
+                ClearPageContent(true);
+            }
         }
         else
         {
+            Debug.Log($"{LOG_PREFIX} 왼쪽 페이지 인덱스 초과: {leftRecipeIndex}");
             ClearPageContent(true);
         }
         
-        // 오른쪽 페이지 업데이트
-        int rightIndex = currentPageIndex * 2 + 1;
-        if (rightIndex < loadedRecipes.Count)
+        // 오른쪽 페이지 (currentPageIndex * 2 + 1)
+        int rightRecipeIndex = currentPageIndex * 2 + 1;
+        if (rightRecipeIndex < loadedRecipes.Count)
         {
-            UpdatePageContent(loadedRecipes[rightIndex], false);
+            var rightRecipe = loadedRecipes[rightRecipeIndex];
+            if (rightRecipe != null)
+            {
+                Debug.Log($"{LOG_PREFIX} 오른쪽 페이지에 레시피 표시: {rightRecipe.weaponName}");
+                UpdatePageContent(rightRecipe, false);
+            }
+            else
+            {
+                Debug.Log($"{LOG_PREFIX} 오른쪽 페이지 레시피가 null");
+                ClearPageContent(false);
+            }
         }
         else
         {
+            Debug.Log($"{LOG_PREFIX} 오른쪽 페이지 인덱스 초과: {rightRecipeIndex}");
             ClearPageContent(false);
         }
         
-        // 페이지 번호 업데이트
         UpdatePageNumber();
-        
-        // 버튼 상태 업데이트
         UpdateNavigationButtons();
     }
     
@@ -207,147 +386,198 @@ public class RecipeBookController : MonoBehaviour
     {
         if (recipe == null) return;
         
-        // 히트포인트 텍스트 업데이트
-        var hitPointTexts = isLeftPage ? leftHitPointTexts : rightHitPointTexts;
-        for (int i = 0; i < hitPointTexts.Length && i < recipe.requiredCollisionCounts.Length; i++)
-        {
-            if (hitPointTexts[i] != null)
-            {
-                hitPointTexts[i].text = $"타격 {i + 1}: {recipe.requiredCollisionCounts[i]}회";
-            }
-        }
-        
-        // 무기 이름 업데이트
+        // 텍스트 업데이트
         var nameText = isLeftPage ? leftWeaponNameText : rightWeaponNameText;
+        var descText = isLeftPage ? leftWeaponDescriptionText : rightWeaponDescriptionText;
+        var hitPointTexts = isLeftPage ? leftHitPointTexts : rightHitPointTexts;
+        
         if (nameText != null)
         {
             nameText.text = recipe.weaponName;
         }
         
-        // 무기 설명 업데이트 (스탯 정보 포함)
-        var descriptionText = isLeftPage ? leftWeaponDescriptionText : rightWeaponDescriptionText;
-        if (descriptionText != null)
+        if (descText != null)
         {
             string description = $"가중치: {recipe.weightFactor:F1}\n";
             description += $"공격력: {recipe.atkFactor:F1}\n";
             description += $"방어력: {recipe.defFactor:F1}\n";
             description += $"기본 가격: {recipe.basePrice}\n";
             description += $"가격 배수: {recipe.priceMultiplier:F1}";
-            
-            descriptionText.text = description;
+            descText.text = description;
         }
         
-        // 3D 오브젝트 표시
+        // 히트포인트 표시
+        if (hitPointTexts != null && recipe.requiredCollisionCounts != null)
+        {
+            for (int i = 0; i < hitPointTexts.Length; i++)
+            {
+                if (hitPointTexts[i] != null)
+                {
+                    if (i < recipe.requiredCollisionCounts.Length)
+                    {
+                        hitPointTexts[i].text = recipe.requiredCollisionCounts[i].ToString();
+                    }
+                    else
+                    {
+                        hitPointTexts[i].text = "0";
+                    }
+                }
+            }
+        }
+        
+        // 3D 무기 표시
         UpdateWeaponDisplay(recipe, isLeftPage);
     }
     
     private void UpdateWeaponDisplay(WeaponRecipe recipe, bool isLeftPage)
     {
-        var displayTransform = isLeftPage ? leftWeaponDisplay : rightWeaponDisplay;
-        if (displayTransform == null || recipe.weaponPrefab == null) return;
+        if (recipe == null || recipe.weaponPrefab == null) return;
         
-        // 기존 무기 오브젝트 제거
-        if (isLeftPage && currentLeftWeapon != null)
+        var displayRect = isLeftPage ? leftWeaponDisplayRect : rightWeaponDisplayRect;
+        var currentWeapon = isLeftPage ? currentLeftWeapon : currentRightWeapon;
+        
+        if (displayRect == null)
         {
-            DestroyImmediate(currentLeftWeapon);
-        }
-        else if (!isLeftPage && currentRightWeapon != null)
-        {
-            DestroyImmediate(currentRightWeapon);
+            Debug.LogWarning($"{LOG_PREFIX} {(isLeftPage ? "왼쪽" : "오른쪽")} 무기 표시 RectTransform이 없습니다.");
+            return;
         }
         
-        // 새 무기 오브젝트 생성
-        GameObject weaponObj = Instantiate(recipe.weaponPrefab, displayTransform);
-        weaponObj.transform.localPosition = Vector3.zero;
-        weaponObj.transform.localRotation = Quaternion.identity;
-        
-        // 물리 컴포넌트 비활성화 (UI 표시용)
-        var rigidbody = weaponObj.GetComponent<Rigidbody>();
-        if (rigidbody != null)
+        if (uiCamera == null)
         {
-            rigidbody.isKinematic = true;
+            Debug.LogWarning($"{LOG_PREFIX} UI 카메라가 없습니다.");
+            return;
         }
         
-        var collider = weaponObj.GetComponent<Collider>();
-        if (collider != null)
+        // 기존 무기 제거
+        if (currentWeapon != null)
         {
-            collider.enabled = false;
+            DestroyImmediate(currentWeapon);
         }
         
-        // 참조 저장
-        if (isLeftPage)
+        try
         {
-            currentLeftWeapon = weaponObj;
+            // RectTransform의 월드 좌표 계산
+            Vector3 worldPosition = GetWorldPositionFromRect(displayRect);
+            
+            // 새 무기 스폰 (월드 좌표에)
+            var weaponObj = Instantiate(recipe.weaponPrefab);
+            weaponObj.transform.position = worldPosition;
+            weaponObj.transform.rotation = Quaternion.identity;
+            weaponObj.transform.localScale = Vector3.one * 0.5f; // UI에 맞게 크기 조절
+            
+            // 물리 컴포넌트 비활성화 (표시용)
+            var rigidbody = weaponObj.GetComponent<Rigidbody>();
+            if (rigidbody != null)
+            {
+                rigidbody.isKinematic = true;
+            }
+            
+            var colliders = weaponObj.GetComponentsInChildren<Collider>();
+            foreach (var collider in colliders)
+            {
+                collider.enabled = false;
+            }
+            
+            // 애니메이션 적용
+            AnimateWeaponSpawn(weaponObj, isLeftPage);
+            
+            // 참조 저장
+            if (isLeftPage)
+                currentLeftWeapon = weaponObj;
+            else
+                currentRightWeapon = weaponObj;
+            
+            Debug.Log($"{LOG_PREFIX} {(isLeftPage ? "왼쪽" : "오른쪽")} 무기 생성 완료: {recipe.weaponName} at {worldPosition}");
         }
-        else
+        catch (System.Exception e)
         {
-            currentRightWeapon = weaponObj;
+            Debug.LogError($"{LOG_PREFIX} 무기 생성 실패: {e.Message}");
         }
+    }
+    
+    private Vector3 GetWorldPositionFromRect(RectTransform rectTransform)
+    {
+        // RectTransform의 중심을 스크린 좌표로 변환
+        Vector3 screenPosition = RectTransformUtility.WorldToScreenPoint(uiCamera, rectTransform.position);
+        
+        // 스크린 좌표를 월드 좌표로 변환 (카메라로부터 일정 거리에)
+        Vector3 worldPosition = uiCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, weaponSpawnDistance));
+        
+        return worldPosition;
     }
     
     private void ClearPageContent(bool isLeftPage)
     {
-        // 히트포인트 텍스트 초기화
-        var hitPointTexts = isLeftPage ? leftHitPointTexts : rightHitPointTexts;
-        for (int i = 0; i < hitPointTexts.Length; i++)
-        {
-            if (hitPointTexts[i] != null)
-            {
-                hitPointTexts[i].text = "";
-            }
-        }
-        
-        // 무기 이름 초기화
+        // 텍스트 클리어
         var nameText = isLeftPage ? leftWeaponNameText : rightWeaponNameText;
+        var descText = isLeftPage ? leftWeaponDescriptionText : rightWeaponDescriptionText;
+        var hitPointTexts = isLeftPage ? leftHitPointTexts : rightHitPointTexts;
+        
         if (nameText != null)
         {
             nameText.text = "";
         }
         
-        // 무기 설명 초기화
-        var descriptionText = isLeftPage ? leftWeaponDescriptionText : rightWeaponDescriptionText;
-        if (descriptionText != null)
+        if (descText != null)
         {
-            descriptionText.text = "";
+            descText.text = "";
         }
         
-        // 3D 오브젝트 제거
-        if (isLeftPage && currentLeftWeapon != null)
+        if (hitPointTexts != null)
         {
-            DestroyImmediate(currentLeftWeapon);
-            currentLeftWeapon = null;
+            for (int i = 0; i < hitPointTexts.Length; i++)
+            {
+                if (hitPointTexts[i] != null)
+                {
+                    hitPointTexts[i].text = "0";
+                }
+            }
         }
-        else if (!isLeftPage && currentRightWeapon != null)
+        
+        // 3D 무기 제거
+        var currentWeapon = isLeftPage ? currentLeftWeapon : currentRightWeapon;
+        if (currentWeapon != null)
         {
-            DestroyImmediate(currentRightWeapon);
-            currentRightWeapon = null;
+            DestroyImmediate(currentWeapon);
+            if (isLeftPage)
+                currentLeftWeapon = null;
+            else
+                currentRightWeapon = null;
         }
     }
     
     private void RotateWeaponDisplays()
     {
+        if (rotationSpeed <= 0f) return;
+        
         if (currentLeftWeapon != null)
         {
-            currentLeftWeapon.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);
+            currentLeftWeapon.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0, Space.Self);
         }
         
         if (currentRightWeapon != null)
         {
-            currentRightWeapon.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);
+            currentRightWeapon.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0, Space.Self);
         }
     }
     
     private void UpdatePageNumber()
     {
-        if (pageNumberText != null)
+        if (pageNumberText != null && loadedRecipes.Count > 0)
         {
-            int totalPages = Mathf.Max(1, Mathf.CeilToInt(loadedRecipes.Count / 2f));
+            int totalPages = Mathf.CeilToInt(loadedRecipes.Count / 2f);
             pageNumberText.text = $"{currentPageIndex + 1} / {totalPages}";
+        }
+        else if (pageNumberText != null)
+        {
+            pageNumberText.text = "0 / 0";
         }
     }
     
     private void UpdateNavigationButtons()
     {
+        int maxPage = Mathf.CeilToInt(loadedRecipes.Count / 2f) - 1;
+        
         if (prevButton != null)
         {
             prevButton.interactable = currentPageIndex > 0;
@@ -355,17 +585,16 @@ public class RecipeBookController : MonoBehaviour
         
         if (nextButton != null)
         {
-            int maxPageIndex = Mathf.Max(0, (loadedRecipes.Count - 1) / 2);
-            nextButton.interactable = currentPageIndex < maxPageIndex;
+            nextButton.interactable = currentPageIndex < maxPage;
         }
     }
     
     private void OnDestroy()
     {
         // DOTween 시퀀스 정리
-        DOTween.Kill(this);
+        KillUIAnimations();
         
-        // 3D 오브젝트 정리
+        // 기존 무기 정리
         if (currentLeftWeapon != null)
         {
             DestroyImmediate(currentLeftWeapon);
@@ -376,6 +605,137 @@ public class RecipeBookController : MonoBehaviour
             DestroyImmediate(currentRightWeapon);
         }
         
-        Debug.Log($"{LOG_PREFIX} 리소스 정리 완료");
+        Debug.Log($"{LOG_PREFIX} RecipeBookController 정리 완료");
+    }
+    
+    // 외부에서 호출 가능한 메서드들
+    public void OpenRecipeBook()
+    {
+        OpenRecipeBookUI();
+    }
+    
+    public void CloseRecipeBook()
+    {
+        CloseRecipeBookUI();
+    }
+    
+    public bool IsRecipeBookOpen()
+    {
+        return isUIActive;
+    }
+    
+    private void AddButtonHoverEffect(Button button)
+    {
+        if (button == null) return;
+        
+        var originalScale = button.transform.localScale;
+        
+        EventTrigger trigger = button.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = button.gameObject.AddComponent<EventTrigger>();
+        }
+        
+        // 마우스 진입
+        EventTrigger.Entry enterEntry = new EventTrigger.Entry();
+        enterEntry.eventID = EventTriggerType.PointerEnter;
+        enterEntry.callback.AddListener((eventData) =>
+        {
+            button.transform.DOScale(originalScale * 1.1f, 0.2f);
+        });
+        trigger.triggers.Add(enterEntry);
+        
+        // 마우스 나가기
+        EventTrigger.Entry exitEntry = new EventTrigger.Entry();
+        exitEntry.eventID = EventTriggerType.PointerExit;
+        exitEntry.callback.AddListener((eventData) =>
+        {
+            button.transform.DOScale(originalScale, 0.2f);
+        });
+        trigger.triggers.Add(exitEntry);
+    }
+    
+    private void PlayOpenAnimation()
+    {
+        if (recipeBookUI == null) return;
+        
+        KillUIAnimations();
+        
+        // 시작 상태 설정
+        recipeBookUI.transform.localScale = Vector3.zero;
+        
+        uiAnimationSequence = DOTween.Sequence();
+        uiAnimationSequence.Append(recipeBookUI.transform.DOScale(originalUIScale * 1.1f, uiOpenDuration * 0.6f).SetEase(Ease.OutBack));
+        uiAnimationSequence.Append(recipeBookUI.transform.DOScale(originalUIScale, uiOpenDuration * 0.4f).SetEase(Ease.InOutQuad));
+        
+        Debug.Log($"{LOG_PREFIX} UI 열기 애니메이션 시작");
+    }
+    
+    private void PlayCloseAnimation(System.Action onComplete)
+    {
+        if (recipeBookUI == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+        
+        KillUIAnimations();
+        
+        uiAnimationSequence = DOTween.Sequence();
+        uiAnimationSequence.Append(recipeBookUI.transform.DOScale(Vector3.zero, uiCloseDuration).SetEase(Ease.InBack));
+        uiAnimationSequence.OnComplete(() => onComplete?.Invoke());
+        
+        Debug.Log($"{LOG_PREFIX} UI 닫기 애니메이션 시작");
+    }
+    
+    private IEnumerator TransitionToPageAnimated()
+    {
+        isTransitioning = true;
+        
+        // 페이지 페이드 아웃
+        var fadeOutSequence = DOTween.Sequence();
+        if (leftPage != null)
+            fadeOutSequence.Join(leftPage.DOFade(0f, pageFlipDuration * 0.5f));
+        if (rightPage != null)
+            fadeOutSequence.Join(rightPage.DOFade(0f, pageFlipDuration * 0.5f));
+        
+        yield return fadeOutSequence.WaitForCompletion();
+        
+        // 페이지 내용 업데이트
+        UpdateCurrentPage();
+        
+        // 페이지 페이드 인
+        var fadeInSequence = DOTween.Sequence();
+        if (leftPage != null)
+            fadeInSequence.Join(leftPage.DOFade(1f, pageFlipDuration * 0.5f));
+        if (rightPage != null)
+            fadeInSequence.Join(rightPage.DOFade(1f, pageFlipDuration * 0.5f));
+        
+        yield return fadeInSequence.WaitForCompletion();
+        
+        isTransitioning = false;
+    }
+    
+    private void AnimateWeaponSpawn(GameObject weaponObj, bool isLeftPage)
+    {
+        if (weaponObj == null) return;
+        
+        // 시작 상태 설정
+        weaponObj.transform.localScale = Vector3.zero;
+        
+        // 스폰 애니메이션
+        var spawnSequence = DOTween.Sequence();
+        spawnSequence.Append(weaponObj.transform.DOScale(Vector3.one * 1.2f, weaponSpawnDuration * 0.7f).SetEase(Ease.OutBack));
+        spawnSequence.Append(weaponObj.transform.DOScale(Vector3.one, weaponSpawnDuration * 0.3f).SetEase(Ease.InOutQuad));
+        
+        Debug.Log($"{LOG_PREFIX} {(isLeftPage ? "왼쪽" : "오른쪽")} 무기 스폰 애니메이션 시작");
+    }
+    
+    private void KillUIAnimations()
+    {
+        if (uiAnimationSequence != null && uiAnimationSequence.IsActive())
+        {
+            uiAnimationSequence.Kill();
+        }
     }
 } 

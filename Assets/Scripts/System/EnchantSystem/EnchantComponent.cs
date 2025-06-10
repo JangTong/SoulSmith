@@ -2,71 +2,109 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 마법 부여 시스템을 위한 컴포넌트
+/// 아이템의 마나 관리 및 마법 효과 적용을 담당
+/// </summary>
 public class EnchantComponent : MonoBehaviour
 {
+    private const string LOG_PREFIX = "[EnchantComponent]";
+    
+    [Header("Mana Pool")]
     public ElementalMana manaPool;
+    
+    [Header("Applied Spells")]
+    public List<MagicSpell> appliedSpells = new List<MagicSpell>();
 
+    // 이벤트
     public event Action<ElementalMana> OnManaChanged;
-    public List<MagicSpell> appliedSpells = new();
 
     private void Awake()
     {
+        InitializeManaPool();
+    }
+
+    /// <summary>
+    /// 아이템 컴포넌트에서 마나풀 초기화
+    /// </summary>
+    private void InitializeManaPool()
+    {
         var item = GetComponent<ItemComponent>();
-        if (item != null)
+        if (item?.elementalMana != null)
         {
             manaPool = new ElementalMana(item.elementalMana);
+            Debug.Log($"{LOG_PREFIX} Mana pool initialized: {manaPool}");
+        }
+        else
+        {
+            Debug.LogWarning($"{LOG_PREFIX} No ItemComponent or ElementalMana found");
         }
     }
 
-    public bool HasEnoughMana(Vector2Int dir)
+    /// <summary>
+    /// 방향 이동에 필요한 마나가 충분한지 확인
+    /// </summary>
+    public bool HasEnoughMana(Vector2Int direction)
     {
-
-        if (dir == Vector2Int.up) return manaPool.air >= 1;
-        if (dir == Vector2Int.down) return manaPool.earth >= 1;
-        if (dir == Vector2Int.left) return manaPool.water >= 1;
-        if (dir == Vector2Int.right) return manaPool.fire >= 1;
-
-        return false;
+        return GetRequiredMana(direction) <= GetAvailableMana(direction);
     }
 
-    public void ConsumeMana(Vector2Int dir)
+    /// <summary>
+    /// 방향 이동에 필요한 마나 소모
+    /// </summary>
+    public void ConsumeMana(Vector2Int direction)
     {
-        if (!HasEnoughMana(dir)) return;
+        if (!HasEnoughMana(direction)) 
+        {
+            Debug.LogWarning($"{LOG_PREFIX} Insufficient mana for direction {direction}");
+            return;
+        }
 
-        if (dir == Vector2Int.up) manaPool.air -= 1;
-        if (dir == Vector2Int.down) manaPool.earth -= 1;
-        if (dir == Vector2Int.left) manaPool.water -= 1;
-        if (dir == Vector2Int.right) manaPool.fire -= 1;
-  
+        // 방향별 마나 소모
+        switch (direction.x, direction.y)
+        {
+            case (0, 1):   // 위 (Air)
+                manaPool.air -= 1;
+                break;
+            case (0, -1):  // 아래 (Earth)
+                manaPool.earth -= 1;
+                break;
+            case (-1, 0):  // 왼쪽 (Water)
+                manaPool.water -= 1;
+                break;
+            case (1, 0):   // 오른쪽 (Fire)
+                manaPool.fire -= 1;
+                break;
+        }
+
         OnManaChanged?.Invoke(manaPool);
-        Debug.Log($"[EnchantComponent] Mana changed: {manaPool}");  // 디버깅용
-    }   
+    }
 
     /// <summary>
     /// 벽 파괴용 마나 소모
     /// </summary>
     public void ConsumeWallBreakMana(ElementalMana requiredMana)
     {
-        Debug.Log($"[EnchantComponent] ConsumeWallBreakMana called - Required: Fire:{requiredMana.fire} Water:{requiredMana.water} Earth:{requiredMana.earth} Air:{requiredMana.air}");
-        Debug.Log($"[EnchantComponent] Current mana before consumption: Fire:{manaPool.fire} Water:{manaPool.water} Earth:{manaPool.earth} Air:{manaPool.air}");
-        
+        if (requiredMana == null) return;
+
+        // 마나 소모
         manaPool.fire -= requiredMana.fire;
         manaPool.water -= requiredMana.water;
         manaPool.earth -= requiredMana.earth;
         manaPool.air -= requiredMana.air;
-        
-        // 마나가 음수가 되지 않도록 제한
+
+        // 음수 방지
         manaPool.fire = Mathf.Max(0, manaPool.fire);
         manaPool.water = Mathf.Max(0, manaPool.water);
         manaPool.earth = Mathf.Max(0, manaPool.earth);
         manaPool.air = Mathf.Max(0, manaPool.air);
-        
-        Debug.Log($"[EnchantComponent] Current mana after consumption: Fire:{manaPool.fire} Water:{manaPool.water} Earth:{manaPool.earth} Air:{manaPool.air}");
-        
+
         OnManaChanged?.Invoke(manaPool);
-        Debug.Log($"[EnchantComponent] Wall break mana consumed and OnManaChanged event fired");
     }
 
+    /// <summary>
+    /// 적용된 모든 마법 시전
+    /// </summary>
     public void CastAllSpells(Transform caster)
     {
         if (appliedSpells == null || appliedSpells.Count == 0) return;
@@ -80,36 +118,86 @@ public class EnchantComponent : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 타겟에 원소 효과 적용
+    /// </summary>
     public void ApplyElementalEffects(Transform target)
     {
+        if (target == null) return;
+
         foreach (var spell in appliedSpells)
         {
-            if (spell.elementalEffectPrefab == null) continue;
+            if (spell?.elementalEffectPrefab == null) continue;
 
-            GameObject fx = Instantiate(spell.elementalEffectPrefab, target);
-            fx.transform.localPosition = Vector3.zero;
-
-            // 메쉬 찾기: MeshFilter 또는 SkinnedMeshRenderer 우선순위로
-            Mesh mesh = null;
-            MeshFilter mf = target.GetComponentInChildren<MeshFilter>();
-            if (mf != null)
-                mesh = mf.sharedMesh;
-            else
-            {
-                var smr = target.GetComponentInChildren<SkinnedMeshRenderer>();
-                if (smr != null)
-                    mesh = smr.sharedMesh;
-            }
-
-            // 파티클 시스템에 메쉬 적용
-            var ps = fx.GetComponent<ParticleSystem>();
-            if (ps != null)
-            {
-                var shape = ps.shape;
-                shape.shapeType = ParticleSystemShapeType.Mesh;
-                shape.mesh = mesh;
-                shape.alignToDirection = true;
-            }
+            CreateElementalEffect(spell, target);
         }
+    }
+
+    /// <summary>
+    /// 방향에 따른 필요 마나량 반환
+    /// </summary>
+    private int GetRequiredMana(Vector2Int direction)
+    {
+        return 1; // 기본 이동 마나 비용
+    }
+
+    /// <summary>
+    /// 방향에 따른 사용 가능한 마나량 반환
+    /// </summary>
+    private int GetAvailableMana(Vector2Int direction)
+    {
+        return direction switch
+        {
+            { x: 0, y: 1 } => manaPool.air,      // 위
+            { x: 0, y: -1 } => manaPool.earth,   // 아래
+            { x: -1, y: 0 } => manaPool.water,   // 왼쪽
+            { x: 1, y: 0 } => manaPool.fire,     // 오른쪽
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    /// 원소 효과 생성 및 적용
+    /// </summary>
+    private void CreateElementalEffect(MagicSpell spell, Transform target)
+    {
+        GameObject fx = Instantiate(spell.elementalEffectPrefab, target);
+        fx.transform.localPosition = Vector3.zero;
+
+        // 메쉬 적용
+        Mesh targetMesh = GetTargetMesh(target);
+        if (targetMesh != null)
+        {
+            ApplyMeshToParticleSystem(fx, targetMesh);
+        }
+    }
+
+    /// <summary>
+    /// 타겟에서 메쉬 가져오기
+    /// </summary>
+    private Mesh GetTargetMesh(Transform target)
+    {
+        // MeshFilter 우선 확인
+        var meshFilter = target.GetComponentInChildren<MeshFilter>();
+        if (meshFilter?.sharedMesh != null)
+            return meshFilter.sharedMesh;
+
+        // SkinnedMeshRenderer 확인
+        var skinnedMeshRenderer = target.GetComponentInChildren<SkinnedMeshRenderer>();
+        return skinnedMeshRenderer?.sharedMesh;
+    }
+
+    /// <summary>
+    /// 파티클 시스템에 메쉬 적용
+    /// </summary>
+    private void ApplyMeshToParticleSystem(GameObject fx, Mesh mesh)
+    {
+        var particleSystem = fx.GetComponent<ParticleSystem>();
+        if (particleSystem == null) return;
+
+        var shape = particleSystem.shape;
+        shape.shapeType = ParticleSystemShapeType.Mesh;
+        shape.mesh = mesh;
+        shape.alignToDirection = true;
     }
 } 

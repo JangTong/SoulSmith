@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e98cb788e9fc1f48a34809ac1565350, type: 3}
+  m_Name: Hammer_Head
+  m_EditorClassIdentifier: 
+  weaponName: Hammer_Head
+  weaponPrefab: {fileID: 7873991153927492797, guid: d5c217a0aa1d11240a32b86dd624bb35,
+    type: 3}
+  requiredCollisionCounts: 0200000002000000020000000200000005000000
+  weightFactor: 1.2
+  atkFactor: 1.5
+  defFactor: 0.4
+  basePrice: 50
+  priceMultiplier: 2.0 

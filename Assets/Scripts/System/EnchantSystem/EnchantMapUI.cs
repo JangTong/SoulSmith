@@ -17,6 +17,9 @@ public class EnchantMapUI : MonoBehaviour
     public TextMeshProUGUI feedbackText;
     public ParticleSystem sparkEffect;
     
+    // 처음 시작할 때의 위치 저장
+    private Vector2Int initialStartPosition;
+    
 
 
     [Header("Mana Bars (Fill Type)")]
@@ -43,6 +46,10 @@ public class EnchantMapUI : MonoBehaviour
     private void OnEnable()
     {
         Debug.Log($"{LOG_PREFIX} OnEnable: Initializing EnchantMapUI");
+        
+        // 무기 배치 이벤트 구독
+        EnchantTable.OnWeaponPlaced += OnNewWeaponPlaced;
+        
         var table = GetComponentInParent<EnchantTable>();
         if (table == null)
         {
@@ -73,8 +80,10 @@ public class EnchantMapUI : MonoBehaviour
         initEarth = enchant.manaPool.earth;
         initAir   = enchant.manaPool.air;
 
-        // 씬에 배치된 플레이어 시작 위치 찾기
+        // 시작 위치 찾고 저장
         currentCoord = FindPlayerStartPosition();
+        initialStartPosition = currentCoord; // 처음 위치 기억
+        Debug.Log($"{LOG_PREFIX} Initial start position saved: {initialStartPosition}");
         
         // 맵을 플레이어 시작 위치에 맞게 초기화
         if (mapContainer != null)
@@ -99,6 +108,9 @@ public class EnchantMapUI : MonoBehaviour
     {
         Debug.Log($"{LOG_PREFIX} OnDisable: Resetting EnchantMapUI state");
         
+        // 무기 배치 이벤트 구독 해제
+        EnchantTable.OnWeaponPlaced -= OnNewWeaponPlaced;
+        
         // DOTween 메모리 누수 방지
         currentMoveTween?.Kill();
         currentMoveTween = null;
@@ -122,6 +134,13 @@ public class EnchantMapUI : MonoBehaviour
         else if (Input.GetKeyDown(downKey)) TryMove(Vector2Int.down);
         else if (Input.GetKeyDown(leftKey)) TryMove(Vector2Int.left);
         else if (Input.GetKeyDown(rightKey)) TryMove(Vector2Int.right);
+        
+        // 테스트용 리셋 키
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            Debug.Log($"{LOG_PREFIX} R key pressed - Force reset to start");
+            ResetToStartPosition();
+        }
     }
 
     private void TryMove(Vector2Int dir)
@@ -134,21 +153,74 @@ public class EnchantMapUI : MonoBehaviour
 
         Vector2Int targetCoord = currentCoord + dir;
         
-        // UI 벽 충돌 검사 (간단한 버전)
+        // UI 벽 충돌 검사 및 파괴 시도
         if (wallCache != null && wallCache.ContainsKey(targetCoord))
         {
-            ShowFeedback("통과할 수 없는 벽입니다");
-            Debug.Log($"{LOG_PREFIX} Hit wall at {targetCoord}");
-            return;
+            var wallObj = wallCache[targetCoord];
+            var wallTile = wallObj?.GetComponent<WallTile>();
+            
+            if (wallTile != null)
+            {
+                // 파괴 가능한 벽인 경우 파괴 시도
+                if (wallTile.IsBreakable)
+                {
+                    // 벽 파괴 전에 마나 정보 미리 저장 (벽이 비활성화되면 접근 불가)
+                    ElementalMana wallManaRequirement = wallTile.RequiredMana;
+                    
+                    bool wallBroken = wallTile.TryBreakWall(enchant.manaPool);
+                    
+                    if (wallBroken)
+                    {
+                        // 마나 소모 전 상태 로그
+                        Debug.Log($"{LOG_PREFIX} Before wall break mana consumption - Fire:{enchant.manaPool.fire} Water:{enchant.manaPool.water} Earth:{enchant.manaPool.earth} Air:{enchant.manaPool.air}");
+                        Debug.Log($"{LOG_PREFIX} Required mana for wall break - Fire:{wallManaRequirement.fire} Water:{wallManaRequirement.water} Earth:{wallManaRequirement.earth} Air:{wallManaRequirement.air}");
+                        
+                        // 벽 파괴에 필요한 마나 소모 (미리 저장된 정보 사용)
+                        enchant.ConsumeWallBreakMana(wallManaRequirement);
+                        
+                        // 마나 소모 후 상태 로그
+                        Debug.Log($"{LOG_PREFIX} After wall break mana consumption - Fire:{enchant.manaPool.fire} Water:{enchant.manaPool.water} Earth:{enchant.manaPool.earth} Air:{enchant.manaPool.air}");
+                        
+                        // 벽이 파괴되면 캐시에서 제거하고 이동 계속
+                        wallCache.Remove(targetCoord);
+                        ShowFeedback($"벽이 파괴되었습니다! 마나 소모: Fire:{wallManaRequirement.fire} Water:{wallManaRequirement.water} Earth:{wallManaRequirement.earth} Air:{wallManaRequirement.air}");
+                        
+                        Debug.Log($"{LOG_PREFIX} Wall broken at {targetCoord}, continuing movement");
+                    }
+                    else
+                    {
+                        // 파괴 실패 (마나 부족 등)
+                        ShowFeedback("벽을 파괴할 마나가 부족합니다");
+                        Debug.Log($"{LOG_PREFIX} Failed to break wall at {targetCoord} - insufficient mana");
+                        return;
+                    }
+                }
+                else
+                {
+                    // 파괴 불가능한 벽
+                    ShowFeedback("파괴할 수 없는 벽입니다");
+                    Debug.Log($"{LOG_PREFIX} Hit unbreakable wall at {targetCoord}");
+                    return;
+                }
+            }
+            else
+            {
+                // WallTile 컴포넌트가 없는 경우 (일반 벽으로 처리)
+                ShowFeedback("통과할 수 없는 벽입니다");
+                Debug.Log($"{LOG_PREFIX} Hit wall at {targetCoord} (no WallTile component)");
+                return;
+            }
         }
 
+        // 이동에 필요한 마나 확인
         if (!enchant.HasEnoughMana(dir))
         {
-            ShowFeedback("마나가 부족합니다");
+            ShowFeedback("이동할 마나가 부족합니다");
             Debug.Log($"{LOG_PREFIX} Not enough mana to move {dir}");
             return;
         }
 
+        // 이동 마나 소모
         enchant.ConsumeMana(dir);
         currentCoord = targetCoord;
 
@@ -359,5 +431,82 @@ public class EnchantMapUI : MonoBehaviour
     private void RefreshTileCache()
     {
         InitializeTileCache();
+    }
+
+    /// <summary>
+    /// 새 무기가 배치되었을 때 호출 - 맵을 초기 상태로 리셋
+    /// </summary>
+    private void OnNewWeaponPlaced()
+    {
+        Debug.Log($"{LOG_PREFIX} New weapon detected! Resetting to start position");
+        
+        // 1. 모든 파괴된 벽 복원
+        RestoreAllWalls();
+        
+        // 2. 플레이어를 시작 위치로 강제 이동
+        ResetToStartPosition();
+        
+        // 3. 피드백 메시지
+        ShowFeedback("새로운 무기가 배치되었습니다! 시작 위치로 돌아갑니다.");
+    }
+
+    /// <summary>
+    /// 플레이어를 처음 저장된 시작 위치로 리셋
+    /// </summary>
+    private void ResetToStartPosition()
+    {
+        Debug.Log($"{LOG_PREFIX} Resetting from {currentCoord} to initial start position {initialStartPosition}");
+        
+        // 현재 좌표를 처음 저장된 위치로 변경
+        currentCoord = initialStartPosition;
+        
+        // 맵 컨테이너 위치를 시작 위치에 맞게 즉시 이동
+        if (mapContainer != null)
+        {
+            Vector2 targetMapPos = -new Vector2(currentCoord.x * tileSize, currentCoord.y * tileSize);
+            mapContainer.anchoredPosition = targetMapPos;
+            Debug.Log($"{LOG_PREFIX} Map moved to {targetMapPos}");
+        }
+        
+        // 플레이어 아이콘 위치를 시작 위치로 강제 이동
+        if (playerIcon != null)
+        {
+            var iconRect = playerIcon.GetComponent<RectTransform>();
+            if (iconRect != null)
+            {
+                Vector2 iconPos = new Vector2(currentCoord.x * tileSize, currentCoord.y * tileSize);
+                iconRect.anchoredPosition = iconPos;
+                Debug.Log($"{LOG_PREFIX} Player icon forced to {iconPos}");
+            }
+        }
+        
+        Debug.Log($"{LOG_PREFIX} Reset complete - Player back at initial position {currentCoord}");
+    }
+
+    /// <summary>
+    /// 파괴된 벽들을 모두 복원
+    /// </summary>
+    private void RestoreAllWalls()
+    {
+        if (mapContainer == null) return;
+        
+        int restored = 0;
+        
+        // 비활성화된 모든 벽 찾아서 복원
+        foreach (Transform child in mapContainer)
+        {
+            var wallTile = child.GetComponent<WallTile>();
+            if (wallTile != null && !child.gameObject.activeInHierarchy)
+            {
+                child.gameObject.SetActive(true);
+                restored++;
+                Debug.Log($"{LOG_PREFIX} Restored wall at {wallTile.Coord}");
+            }
+        }
+        
+        // 벽 캐시 재구성
+        InitializeTileCache();
+        
+        Debug.Log($"{LOG_PREFIX} Restored {restored} walls");
     }
 }

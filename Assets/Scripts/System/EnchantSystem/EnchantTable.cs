@@ -1,8 +1,11 @@
 using UnityEngine;
 using DG.Tweening;
+using System;
 
 public class EnchantTable : MonoBehaviour
 {
+    private const string LOG_PREFIX = "[EnchantTable]";
+    
     public Transform fixedPosition;
     public GameObject objectOnTable;
     public GameObject enchantUI;
@@ -10,8 +13,12 @@ public class EnchantTable : MonoBehaviour
     public float cameraMoveDuration = 0.5f;
 
     private bool onEnchanting = false;
+    
+    // 무기 변경 이벤트 (간단 버전)
+    public static event Action OnWeaponPlaced;
 
-    private void Start(){
+    private void Start()
+    {
         enchantUI.SetActive(false);
     }
 
@@ -54,11 +61,15 @@ public class EnchantTable : MonoBehaviour
         if (rb != null) rb.isKinematic = true;
 
         other.transform.SetParent(fixedPosition);
-    // 부드러운 이동 & 회전 (0.3초)
+        // 부드러운 이동 & 회전 (0.3초)
         other.transform.DOLocalMove(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
         other.transform.DOLocalRotate(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
 
         OpenEnchantUI();
+        
+        // 무기 배치 이벤트 발생
+        Debug.Log($"{LOG_PREFIX} New weapon placed: {other.name} - Triggering reset event");
+        OnWeaponPlaced?.Invoke();
     }
 
     private void OpenEnchantUI()

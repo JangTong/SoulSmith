@@ -15,7 +15,7 @@ MonoBehaviour:
   scheduleName: Default Schedule
   description: "NPC\uC758 \uD558\uB8E8 \uC77C\uC815\uC744 \uC815\uC758\uD569\uB2C8\uB2E4."
   scheduleEntries:
-  - hour: 9
+  - hour: 7
     minute: 0
     targetLocation: {fileID: 0}
     locationTag: 

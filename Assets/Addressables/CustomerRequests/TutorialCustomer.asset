@@ -1,0 +1,128 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fb03ba87bd06b742bee8a0c95abc7fb, type: 3}
+  m_Name: TutorialCustomer
+  m_EditorClassIdentifier: 
+  customerName: Customer
+  isRepeatable: 1
+  useInlineMainDialogue: 1
+  inlineMainDialogue:
+  - text: "\uC548\uB155\uD558\uC138\uC694! \uC88B\uC740 \uC544\uCE68\uC774\uB124\uC694.\n\uAD6C\uB9AC\uB85C
+      \uB9CC\uB4E0 \uAC80\uC774 \uD544\uC694\uD55C\uB370, \uD639\uC2DC \uC788\uC744\uAE4C\uC694?"
+    speaker: Customer
+    portrait: {fileID: 0}
+  referenceMainDialogue: {fileID: 11400000, guid: 6c0786f266a5f7045880b6906607844f,
+    type: 2}
+  useInlineSuccessDialogue: 1
+  inlineSuccessDialogue:
+  - text: "\uAC10\uC0AC\uD569\uB2C8\uB2E4!"
+    speaker: Customer
+    portrait: {fileID: 0}
+  - text: "\uD760\u2026 \uC190\uC9C8, \uC870\uB9BD, \uC5F0\uB9C8, \uBD80\uC5EC\uAE4C\uC9C0
+      \uB2E4 \uAE54\uB054\uD588\uC5B4.\n\uC774 \uC815\uB3C4\uBA74 \uD504\uB85C\uC9C0.
+      \uCD95\uD558\uD574!"
+    speaker: "\uD4E8\uB77C"
+    portrait: {fileID: 21300000, guid: faeb086d98451454db0c3f9bbd4e1182, type: 3}
+  referenceSuccessDialogue: {fileID: 0}
+  useInlineFailureDialogue: 1
+  inlineFailureDialogue:
+  - text: "\uC8C4\uC1A1\uD569\uB2C8\uB2E4.. \uC774\uAC74 \uC81C\uAC00 \uC6D0\uD558\uB294
+      \uBB3C\uAC74\uC774 \uC544\uB2C8\uB124\uC694."
+    speaker: Customer
+    portrait: {fileID: 0}
+  - text: "\uC774 \uC0AC\uB78C\uC774 \uD544\uC694\uD55C \uAC74 \uAD6C\uB9AC\uAC80\uC774\uC57C!
+      \uC900\uBE44\uD574\uC624\uC790."
+    speaker: "\uD4E8\uB77C"
+    portrait: {fileID: 21300000, guid: 7d07a200e4c57884daf87670666464ec, type: 3}
+  referenceFailureDialogue: {fileID: 11400000, guid: 6c0786f266a5f7045880b6906607844f,
+    type: 2}
+  useWeaponType: 1
+  requiredWeaponType: 1
+  weaponTypeWeight: 1
+  useMinAtk: 0
+  minAtkPower: 0
+  atkWeight: 0
+  useMaxAtk: 0
+  maxAtkPower: 0
+  maxAtkWeight: 0
+  useMinDef: 0
+  minDefPower: 0
+  defWeight: 0
+  useMaxDef: 0
+  maxDefPower: 0
+  maxDefWeight: 0
+  useMaxWeight: 0
+  maxWeight: 0
+  weightWeight: 0
+  useMinRarity: 0
+  minRarity: 0
+  rarityWeight: 0
+  useFire: 0
+  fireWeight: 0
+  useWater: 0
+  waterWeight: 0
+  useEarth: 0
+  earthWeight: 0
+  useAir: 0
+  airWeight: 0
+  useFireRes: 0
+  minFireRes: 0
+  fireResWeight: 0
+  useWaterRes: 0
+  minWaterRes: 0
+  waterResWeight: 0
+  useEarthRes: 0
+  minEarthRes: 0
+  earthResWeight: 0
+  useAirRes: 0
+  minAirRes: 0
+  airResWeight: 0
+  useFireAffinity: 0
+  minFireAffinity: 0
+  fireAffinityWeight: 0
+  useWaterAffinity: 0
+  minWaterAffinity: 0
+  waterAffinityWeight: 0
+  useEarthAffinity: 0
+  minEarthAffinity: 0
+  earthAffinityWeight: 0
+  useAirAffinity: 0
+  minAirAffinity: 0
+  airAffinityWeight: 0
+  useSpecialEffect: 0
+  requiredEffect: 
+  effectWeight: 0
+  requireBlessed: 0
+  blessedWeight: 0
+  requireCursed: 0
+  cursedWeight: 0
+  useRequiredSpells: 0
+  requiredSpells: []
+  spellWeight: 0
+  useForbiddenSpells: 0
+  forbiddenSpells: []
+  forbiddenSpellWeight: 0
+  useRequiredMaterials: 1
+  requiredMaterialNames:
+  - Copper Bar
+  - Copper Bar
+  requiredMaterialCount: 1
+  materialWeight: 1
+  useInlinePostTradeDialogue: 1
+  inlinePostTradeDialogue:
+  - text: "\uAC70\uB798\uBD88\uAC00"
+    speaker: Test
+    portrait: {fileID: 21300000, guid: e9d4143c19529834981ac6821a04aecd, type: 3}
+  - text: "\uAC70\uB798\uBD88\uAC002"
+    speaker: Test
+    portrait: {fileID: 21300000, guid: e9d4143c19529834981ac6821a04aecd, type: 3}
+  referencePostTradeDialogue: {fileID: 0}

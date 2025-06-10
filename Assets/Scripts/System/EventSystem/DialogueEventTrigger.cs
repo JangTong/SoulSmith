@@ -34,6 +34,12 @@ public class DialogueEventTrigger : MonoBehaviour
     public string playerTag = DEFAULT_PLAYER_TAG;
     public bool oneTimeOnly = true;
     
+    [Header("아이템 조건 설정")]
+    [Tooltip("특정 아이템 이름이 트리거에 들어올 때만 발동")]
+    public bool triggerOnSpecificItem = false;
+    [Tooltip("발동시킬 아이템의 이름 (ItemComponent.itemName과 비교)")]
+    public string requiredItemName = "";
+    
     [Tooltip("대화 완료 후 이 GameObject를 삭제할지 여부")]
     public bool destroyAfterComplete = false;
     
@@ -100,11 +106,50 @@ public class DialogueEventTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // 플레이어 체크: triggerOnCollision이 true일 때만
         if (triggerOnCollision && other.CompareTag(playerTag))
         {
             TriggerDialogue();
+            return;
+        }
+        
+        // 아이템 조건 체크: triggerOnSpecificItem이 true이면 항상 체크
+        if (triggerOnSpecificItem && other.CompareTag("Items"))
+        {
+            CheckItemCondition(other);
         }
     }
+    
+    /// <summary>
+    /// 특정 아이템 조건을 체크하고 대화 실행
+    /// </summary>
+    private void CheckItemCondition(Collider itemCollider)
+    {
+        var itemComponent = itemCollider.GetComponent<ItemComponent>();
+        if (itemComponent == null)
+        {
+            Debug.LogWarning($"{LOG_PREFIX} {name}: ItemComponent가 없는 오브젝트입니다: {itemCollider.name}");
+            return;
+        }
+        
+        // 아이템 이름이 일치하는지 확인
+        if (string.IsNullOrEmpty(requiredItemName))
+        {
+            Debug.LogWarning($"{LOG_PREFIX} {name}: requiredItemName이 설정되지 않았습니다!");
+            return;
+        }
+        
+        if (itemComponent.itemName.Equals(requiredItemName, System.StringComparison.OrdinalIgnoreCase))
+        {
+            Debug.Log($"{LOG_PREFIX} {name}: 조건에 맞는 아이템 감지: {itemComponent.itemName}");
+            TriggerDialogue();
+        }
+        else
+        {
+            Debug.Log($"{LOG_PREFIX} {name}: 조건에 맞지 않는 아이템: {itemComponent.itemName} (필요: {requiredItemName})");
+        }
+    }
+
 
     [ContextMenu("대화 실행")]
     public void TriggerDialogue()
@@ -163,6 +208,9 @@ public class DialogueEventTrigger : MonoBehaviour
     {
         if (triggerOnStart)
             return "시작";
+        
+        if (triggerOnSpecificItem)
+            return $"아이템({requiredItemName})";
         
         if (triggerOnCollision)
             return "충돌";

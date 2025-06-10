@@ -219,13 +219,21 @@ public class ItemInteractionController : MonoBehaviour
             var t = heldItemLeft.transform;
             if (DOTween.IsTweening(t)) DOTween.Kill(t);
 
+            // 목표 회전값 계산 (XZ는 0, Y는 현재 월드 회전의 Y값 유지)
+            Vector3 currentWorldRotation = t.eulerAngles;
+            Vector3 targetRotation = new Vector3(0f, currentWorldRotation.y, 0f);
+
             isAnimating = true;
             var seq = DOTween.Sequence();
+            
+            // 위치와 회전을 동시에 부드럽게 애니메이션
             seq.Append(t.DOLocalMove(new Vector3(0, 0, 1f), 0.3f).SetEase(Ease.InOutQuad));
+            seq.Join(t.DORotate(targetRotation, 0.3f).SetEase(Ease.InOutQuad));
+            
             seq.OnComplete(() => {
                 t.SetParent(null);
                 if (heldItemLeft.TryGetComponent<Rigidbody>(out var rb)) rb.isKinematic = false;
-                Debug.Log($"{LOG_PREFIX} ToggleLeftEquip: Dropped");
+                Debug.Log($"{LOG_PREFIX} ToggleLeftEquip: Dropped with smooth XZ rotation reset");
                 heldItemLeft = null;
                 isAnimating = false;
             });

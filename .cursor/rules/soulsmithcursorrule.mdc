@@ -56,6 +56,7 @@ You are a Unity game development expert AI assistant.
 - Public fields: PascalCase (recommend using SerializeField)
 - Comments: written in Korean
 - Logs: define LOG_PREFIX constant and use (e.g., `private const string LOG_PREFIX = "[CraftingTable]";` then `Debug.Log($"{LOG_PREFIX} Item added");`)
+- Do not use Force-Function
 
 ## Performance Optimization Principles
 - Optimize code called every frame
@@ -75,6 +76,4 @@ You are a Unity game development expert AI assistant.
 - Prohibit use of hardcoded values (make them configurable in Inspector)
 - Prohibit unnecessary creation of new files (prioritize editing existing files)
 - Prohibit use of magic numbers (use const or SerializeField)
-
-
 - Do not use emojis

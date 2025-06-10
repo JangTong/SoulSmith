@@ -13,7 +13,7 @@ public class EnchantTable : MonoBehaviour
     public float cameraMoveDuration = 0.5f;
 
     private bool onEnchanting = false;
-    
+
     // 무기 변경 이벤트 (간단 버전)
     public static event Action OnWeaponPlaced;
 
@@ -61,7 +61,7 @@ public class EnchantTable : MonoBehaviour
         if (rb != null) rb.isKinematic = true;
 
         other.transform.SetParent(fixedPosition);
-        // 부드러운 이동 & 회전 (0.3초)
+    // 부드러운 이동 & 회전 (0.3초)
         other.transform.DOLocalMove(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
         other.transform.DOLocalRotate(Vector3.zero, 0.3f).SetEase(Ease.OutSine);
 

@@ -97,6 +97,40 @@ public class TimeManager : MonoBehaviour
         Debug.Log($"{LOG_PREFIX} 시간 {(pause ? "정지" : "재개")} - {GetFormattedTime()}");
     }
 
+    /// <summary>
+    /// 게임 시간만 일시정지 (Unity TimeScale은 건드리지 않음)
+    /// TimeManager 시간, DayNightSystem, HUD 시간만 멈춤
+    /// </summary>
+    public void PauseGameTimeOnly()
+    {
+        isTimePaused = true;
+        Debug.Log($"{LOG_PREFIX} 게임 시간만 정지 - {GetFormattedTime()} (Unity TimeScale 유지)");
+    }
+    
+    /// <summary>
+    /// 게임 시간만 재개 (Unity TimeScale은 건드리지 않음)
+    /// </summary>
+    public void ResumeGameTimeOnly()
+    {
+        isTimePaused = false;
+        Debug.Log($"{LOG_PREFIX} 게임 시간만 재개 - {GetFormattedTime()} (Unity TimeScale 유지)");
+    }
+    
+    /// <summary>
+    /// 게임 시간 일시정지 상태 토글 (Unity TimeScale은 건드리지 않음)
+    /// </summary>
+    public void ToggleGameTimeOnly()
+    {
+        if (isTimePaused)
+        {
+            ResumeGameTimeOnly();
+        }
+        else
+        {
+            PauseGameTimeOnly();
+        }
+    }
+
     public string GetFormattedTime()
     {
         return $"{hours:00}:{minutes:00}";

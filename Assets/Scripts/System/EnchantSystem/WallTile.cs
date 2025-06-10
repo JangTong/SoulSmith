@@ -228,27 +228,25 @@ public class WallTile : MonoBehaviour
         else if (displayMode == DisplayMode.Sprite)
         {
             // 스프라이트 모드: 타입별 스프라이트 사용
-            Sprite targetSprite = GetWallSprite();
+            Sprite targetSprite;
+            
+            // 부술 수 없는 벽은 Default Sprite 사용
+            if (!isBreakable)
+            {
+                targetSprite = defaultSprite;
+            }
+            else
+            {
+                targetSprite = GetWallSprite();
+            }
+            
             if (targetSprite != null)
             {
                 wallImage.sprite = targetSprite;
             }
             
-            // 스프라이트 모드에서는 기본 색상 사용 (흰색)
-            Color targetColor = Color.white;
-            
-            // 파괴 가능한 벽은 약간 투명하게
-            if (isBreakable)
-            {
-                targetColor.a = breakableAlpha;
-            }
-            else
-            {
-                // 파괴 불가능한 벽은 어둡게
-                targetColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-            }
-            
-            wallImage.color = targetColor;
+            // 스프라이트 모드에서는 색깔 조정 없이 기본 흰색 사용 (투명도 조정도 없음)
+            wallImage.color = Color.white;
         }
     }
 

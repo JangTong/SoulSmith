@@ -40,7 +40,7 @@ public class EnchantComponent : MonoBehaviour
   
         OnManaChanged?.Invoke(manaPool);
         Debug.Log($"[EnchantComponent] Mana changed: {manaPool}");  // 디버깅용
-    }
+    }   
 
     /// <summary>
     /// 벽 파괴용 마나 소모

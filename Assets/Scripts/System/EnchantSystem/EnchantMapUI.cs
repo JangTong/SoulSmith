@@ -17,6 +17,9 @@ public class EnchantMapUI : MonoBehaviour
     public TextMeshProUGUI feedbackText;
     public ParticleSystem sparkEffect;
     
+    [Header("UI Controls")]
+    public Button applySpellButton;
+    
     // 처음 시작할 때의 위치 저장
     private Vector2Int initialStartPosition;
     
@@ -49,6 +52,12 @@ public class EnchantMapUI : MonoBehaviour
         
         // 무기 배치 이벤트 구독
         EnchantTable.OnWeaponPlaced += OnNewWeaponPlaced;
+        
+        // 마법 부여 버튼 이벤트 등록
+        if (applySpellButton != null)
+        {
+            applySpellButton.onClick.AddListener(ApplyCurrentSpell);
+        }
         
         var table = GetComponentInParent<EnchantTable>();
         if (table == null)
@@ -111,6 +120,12 @@ public class EnchantMapUI : MonoBehaviour
         // 무기 배치 이벤트 구독 해제
         EnchantTable.OnWeaponPlaced -= OnNewWeaponPlaced;
         
+        // 마법 부여 버튼 이벤트 해제
+        if (applySpellButton != null)
+        {
+            applySpellButton.onClick.RemoveListener(ApplyCurrentSpell);
+        }
+        
         // DOTween 메모리 누수 방지
         currentMoveTween?.Kill();
         currentMoveTween = null;
@@ -129,18 +144,11 @@ public class EnchantMapUI : MonoBehaviour
     {
         if (enchant == null) return;
         
-        // 키 입력 유지하되 최적화
+        // 키 입력 처리
         if (Input.GetKeyDown(upKey)) TryMove(Vector2Int.up);
         else if (Input.GetKeyDown(downKey)) TryMove(Vector2Int.down);
         else if (Input.GetKeyDown(leftKey)) TryMove(Vector2Int.left);
         else if (Input.GetKeyDown(rightKey)) TryMove(Vector2Int.right);
-        
-        // 테스트용 리셋 키
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            Debug.Log($"{LOG_PREFIX} R key pressed - Force reset to start");
-            ResetToStartPosition();
-        }
     }
 
     private void TryMove(Vector2Int dir)
@@ -237,7 +245,6 @@ public class EnchantMapUI : MonoBehaviour
         UpdatePlayerIconPosition();
 
         ShowFeedback(string.Empty);
-        Debug.Log($"{LOG_PREFIX} Moved {dir} to {currentCoord}, Mana now Fire:{enchant.manaPool.fire}/{initFire}, Water:{enchant.manaPool.water}/{initWater}, Earth:{enchant.manaPool.earth}/{initEarth}, Air:{enchant.manaPool.air}/{initAir}");
     }
 
     public void ApplyCurrentSpell()
@@ -284,16 +291,22 @@ public class EnchantMapUI : MonoBehaviour
     private void UpdateManaUI(ElementalMana mana)
     {
         if (enchant == null) return;
-        if (initFire  > 0) fireManaBar.fillAmount  = mana.fire  / (float)initFire;
-        if (initWater > 0) waterManaBar.fillAmount = mana.water / (float)initWater;
-        if (initEarth > 0) earthManaBar.fillAmount = mana.earth / (float)initEarth;
-        if (initAir   > 0) airManaBar.fillAmount   = mana.air   / (float)initAir;
-        Debug.Log($"{LOG_PREFIX} Mana UI Updated - Fire:{mana.fire}/{initFire}, Water:{mana.water}/{initWater}, Earth:{mana.earth}/{initEarth}, Air:{mana.air}/{initAir}");
+        
+        // 마나 바 null 체크 추가하여 NullReferenceException 방지
+        if (fireManaBar != null && initFire > 0) 
+            fireManaBar.fillAmount = mana.fire / (float)initFire;
+        if (waterManaBar != null && initWater > 0) 
+            waterManaBar.fillAmount = mana.water / (float)initWater;
+        if (earthManaBar != null && initEarth > 0) 
+            earthManaBar.fillAmount = mana.earth / (float)initEarth;
+        if (airManaBar != null && initAir > 0) 
+            airManaBar.fillAmount = mana.air / (float)initAir;
     }
 
     private void ShowFeedback(string message)
     {
-        feedbackText.text = message;
+        if (feedbackText != null)
+            feedbackText.text = message;
     }
 
 
@@ -377,8 +390,6 @@ public class EnchantMapUI : MonoBehaviour
         // 플레이어 아이콘을 현재 좌표 위치로 이동
         Vector2 iconPos = new Vector2(currentCoord.x * tileSize, currentCoord.y * tileSize);
         iconRect.anchoredPosition = iconPos;
-
-        Debug.Log($"{LOG_PREFIX} Player icon moved to {currentCoord} at UI position {iconPos}");
     }
 
     private void InitializeTileCache()
@@ -409,7 +420,7 @@ public class EnchantMapUI : MonoBehaviour
             }
         }
         
-        Debug.Log($"{LOG_PREFIX} Initialized tile cache with {tileCache.Count} tiles and {wallCache.Count} walls");
+        // 타일 캐시 초기화 완료
     }
 
     private GameObject FindTileAt(Vector2Int coord)
@@ -443,7 +454,7 @@ public class EnchantMapUI : MonoBehaviour
         // 1. 모든 파괴된 벽 복원
         RestoreAllWalls();
         
-        // 2. 플레이어를 시작 위치로 강제 이동
+        // 2. 플레이어를 시작 위치로 이동
         ResetToStartPosition();
         
         // 3. 피드백 메시지
@@ -465,10 +476,9 @@ public class EnchantMapUI : MonoBehaviour
         {
             Vector2 targetMapPos = -new Vector2(currentCoord.x * tileSize, currentCoord.y * tileSize);
             mapContainer.anchoredPosition = targetMapPos;
-            Debug.Log($"{LOG_PREFIX} Map moved to {targetMapPos}");
         }
         
-        // 플레이어 아이콘 위치를 시작 위치로 강제 이동
+        // 플레이어 아이콘을 시작 위치로 이동
         if (playerIcon != null)
         {
             var iconRect = playerIcon.GetComponent<RectTransform>();
@@ -476,7 +486,6 @@ public class EnchantMapUI : MonoBehaviour
             {
                 Vector2 iconPos = new Vector2(currentCoord.x * tileSize, currentCoord.y * tileSize);
                 iconRect.anchoredPosition = iconPos;
-                Debug.Log($"{LOG_PREFIX} Player icon forced to {iconPos}");
             }
         }
         

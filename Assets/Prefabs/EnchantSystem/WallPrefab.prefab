@@ -60,14 +60,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 809885899, guid: 01be47cdf35c5de4cbb0341922b96f12, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -99,9 +99,15 @@ MonoBehaviour:
     air: 0
   useAutoManaCalculation: 1
   wallImage: {fileID: 3959468758299725383}
+  displayMode: 0
   breakableAlpha: 0.7
   customColor: {r: 1, g: 1, b: 1, a: 1}
   useCustomColor: 0
+  defaultSprite: {fileID: 809885899, guid: 01be47cdf35c5de4cbb0341922b96f12, type: 3}
+  stoneSprite: {fileID: 43615020, guid: 01be47cdf35c5de4cbb0341922b96f12, type: 3}
+  metalSprite: {fileID: -1170482803, guid: 01be47cdf35c5de4cbb0341922b96f12, type: 3}
+  magicSprite: {fileID: -1809729404, guid: 01be47cdf35c5de4cbb0341922b96f12, type: 3}
+  breakableSprite: {fileID: -956690822, guid: 01be47cdf35c5de4cbb0341922b96f12, type: 3}
   destructionDelay: 0.5
   regenerateAfterTime: 0
   regenerationTime: 30

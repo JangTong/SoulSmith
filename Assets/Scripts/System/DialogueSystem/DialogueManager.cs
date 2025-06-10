@@ -18,6 +18,9 @@ public class DialogueManager : MonoBehaviour
     private UnityAction onDialogueComplete;
     private bool isTradeMode;
     private UnityAction onSellCallback;
+    
+    // 연계 대화 상태 관리
+    private bool isChainDialogue = false;
 
     // AssetReference 로드용 임시 인스턴스
     private DialogueData tempDialogueData;
@@ -95,6 +98,17 @@ public class DialogueManager : MonoBehaviour
         tempDialogueData.lines = lines;
         SetupDialogue(tempDialogueData, onComplete, tradeMode: false, onSell: null);
     }
+    
+    // 연계 대화 전용 메서드
+    public void PlayChainDialogue(List<DialogueLine> lines, UnityAction onComplete = null)
+    {
+        Debug.Log($"{LOG_PREFIX} PlayChainDialogue(List) called with {lines?.Count ?? 0} lines - UI Lock 유지");
+        isChainDialogue = true;
+        if (tempDialogueData == null)
+            tempDialogueData = ScriptableObject.CreateInstance<DialogueData>();
+        tempDialogueData.lines = lines;
+        SetupDialogue(tempDialogueData, onComplete, tradeMode: false, onSell: null);
+    }
 
     // 5) List<DialogueLine> 기반 거래 대화
     public void PlayTradeDialogue(List<DialogueLine> lines, UnityAction onSell)
@@ -133,8 +147,18 @@ public class DialogueManager : MonoBehaviour
         if (tradeMode)
             DialogueUIController.OnSellClicked += HandleSell;
 
-        // 게임 UI 토글 (일시정지)
-        ToggleGameUI(enableUI: true, stopTime: false);
+        // 게임 UI 토글 - 연계 대화든 일반 대화든 UI Lock 보장
+        if (!isChainDialogue)
+        {
+            ToggleGameUI(enableUI: true, stopTime: false);
+            Debug.Log($"{LOG_PREFIX} SetupDialogue: 새로운 대화 - UI Lock 적용");
+        }
+        else
+        {
+            // 연계 대화에서도 UI Lock 상태 확실히 보장
+            ToggleGameUI(enableUI: true, stopTime: false);
+            Debug.Log($"{LOG_PREFIX} SetupDialogue: 연계 대화 - UI Lock 강제 적용");
+        }
 
         // 첫 줄 출력
         ShowCurrentLine();
@@ -200,19 +224,58 @@ public class DialogueManager : MonoBehaviour
     private void EndDialogue()
     {
         Debug.Log($"{LOG_PREFIX} EndDialogue: Dialogue ended");
-        UIManager.Instance.HideDialogue();
-        ToggleGameUI(enableUI: false, stopTime: false);
-        PlayerController.Instance.cam.ResetToDefault(0.5f);
-        onDialogueComplete?.Invoke();
-
-        // 상태 초기화
+        
+        // onDialogueComplete 호출하여 연계 대화 확인
+        var tempOnComplete = onDialogueComplete;
+        
+        // 상태 초기화 (onDialogueComplete가 연계 대화를 시작할 수 있으므로 먼저 초기화)
         onDialogueComplete = null;
         isTradeMode = false;
         onSellCallback = null;
-
+        
         // 안전 차원에서 남은 이벤트 구독 해제
         DialogueUIController.OnNextClicked -= HandleNext;
         DialogueUIController.OnSellClicked -= HandleSell;
+        
+        // 연계 대화 상태 확인
+        bool wasChainDialogue = isChainDialogue;
+        isChainDialogue = false; // 다음 대화를 위해 초기화
+        
+        // 콜백 실행 (연계 대화가 시작될 수 있음)
+        tempOnComplete?.Invoke();
+        
+        // 연계 대화가 새로 시작되었는지 확인
+        bool newChainStarted = isChainDialogue;
+        
+        Debug.Log($"{LOG_PREFIX} EndDialogue: wasChain={wasChainDialogue}, newChainStarted={newChainStarted}");
+        
+        // 연계 대화가 시작되지 않았다면 완전 정리
+        if (!newChainStarted)
+        {
+            UIManager.Instance.HideDialogue();
+            ToggleGameUI(enableUI: false, stopTime: false);
+            PlayerController.Instance.cam.ResetToDefault(0.5f, unlockUI: true);
+            Debug.Log($"{LOG_PREFIX} EndDialogue: 연계 대화 없음 - 대화창 숨기기 및 UI Lock 해제");
+        }
+        else
+        {
+            // 연계 대화가 있어도 Focus는 해제 (UI 상호작용을 위해)
+            UIManager.Instance.SetFocusActive(false);
+            
+            // 테스트: 연계 대화에서도 FadeOut 실행해보기
+            Debug.Log($"{LOG_PREFIX} EndDialogue: 연계 대화 - FadeOut 테스트 실행");
+            
+            Debug.Log($"{LOG_PREFIX} EndDialogue: 연계 대화 시작됨 - 대화창 및 UI Lock 유지 (Focus 해제)");
+        }
+    }
+
+    /// <summary>
+    /// 연계 대화 시작 알림 (DialogueEventTrigger에서 호출)
+    /// </summary>
+    public void StartChainDialogue()
+    {
+        isChainDialogue = true;
+        Debug.Log($"{LOG_PREFIX} StartChainDialogue: 연계 대화 시작됨");
     }
 
     // 게임 플레이 중 UI 토글 및 시간 정지/재개
@@ -220,7 +283,14 @@ public class DialogueManager : MonoBehaviour
     {
         Debug.Log($"{LOG_PREFIX} ToggleGameUI – UIActive:{enableUI}, StopTime:{stopTime}");
         PlayerController.Instance.ToggleUI(enableUI);
-        TimeManager.Instance.ToggleTime(stopTime);
+        
+        // stopTime이 true일 때만 시간 관련 처리
+        if (stopTime)
+        {
+            TimeManager.Instance.ToggleTime(true);
+        }
+        // stopTime이 false일 때는 시간을 건드리지 않음 (사용자가 수동으로 정지한 시간 유지)
+        
         UIManager.Instance.SetFocusActive(!enableUI);
     }
 }

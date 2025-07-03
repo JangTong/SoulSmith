@@ -9,7 +9,6 @@ public abstract class MagicSpell : ScriptableObject
     
     [Header("Properties")]
     public ElementalMana cost;
-    public GameObject elementalEffectPrefab;
 
     public abstract void Fire(Transform caster);
 }

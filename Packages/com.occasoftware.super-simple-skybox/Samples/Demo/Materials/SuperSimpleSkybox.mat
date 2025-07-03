@@ -249,7 +249,7 @@ Material:
     - _Sun_Enabled: 1
     - _Sun_Sky_Lighting_Enabled: 1
     - _SunsetHorizontalFalloff: 0.6
-    - _SunsetIntensity: 0.5
+    - _SunsetIntensity: 1.9987998
     - _SunsetRadialFalloff: 0.1
     - _SunsetVerticalFalloff: 0.5
     - _Surface: 0

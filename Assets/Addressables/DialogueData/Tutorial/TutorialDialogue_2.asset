@@ -25,14 +25,14 @@ MonoBehaviour:
       \uACE4\uB780\uD558\uB2C8\uAE4C~ \uC9C1\uC811 \uC880 \uC6C0\uC9C1\uC5EC\uBCF4\uC790\uAD6C!"
     speaker: "\uD4E8\uB77C"
     portrait: {fileID: 21300000, guid: 7d07a200e4c57884daf87670666464ec, type: 3}
-  - text: "\uAC77\uB294 \uBC95\uC740 \uC54C\uC9C0? W, A, S, D \uD0A4\uB85C \uC6C0\uC9C1\uC5EC\uBD10.
+  - text: "\uAC77\uB294 \uBC95\uC740 \uC54C\uC9C0? [W][A][S][D]\uD0A4\uB85C \uC6C0\uC9C1\uC5EC\uBD10.
       \uB124 \uB2E4\uB9AC, \uC544\uC9C1 \uC4F8\uB9CC\uD558\uACA0\uC9C0?"
     speaker: "\uD4E8\uB77C"
     portrait: {fileID: 21300000, guid: 7d07a200e4c57884daf87670666464ec, type: 3}
   - text: "\uC8FC\uBCC0\uC5D0 \uBB50\uAC00 \uB5A8\uC5B4\uC838 \uC788\uC73C\uBA74
       \uC88C\uD074\uB9AD\uC73C\uB85C \uC8FC\uC6CC\uBCF4\uACE0,\n\uC4F8\uB9CC\uD574
       \uBCF4\uC774\uBA74 \uC6B0\uD074\uB9AD\uC73C\uB85C \uBC14\uB85C \uC7A5\uCC29!
-      \uAC04\uB2E8\uD558\uC9C0? Q\uB85C \uC67C\uC190\uC5D0 \uBB3C\uAC74\uC744 \uB4E4
+      \uAC04\uB2E8\uD558\uC9C0? [Q]\uB85C \uC67C\uC190\uC5D0 \uBB3C\uAC74\uC744 \uB4E4
       \uC218\uB3C4 \uC788\uC5B4!"
     speaker: "\uD4E8\uB77C"
     portrait: {fileID: 21300000, guid: 7d07a200e4c57884daf87670666464ec, type: 3}

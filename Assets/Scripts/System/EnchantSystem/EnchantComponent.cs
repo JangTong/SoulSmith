@@ -119,21 +119,6 @@ public class EnchantComponent : MonoBehaviour
     }
 
     /// <summary>
-    /// 타겟에 원소 효과 적용
-    /// </summary>
-    public void ApplyElementalEffects(Transform target)
-    {
-        if (target == null) return;
-
-        foreach (var spell in appliedSpells)
-        {
-            if (spell?.elementalEffectPrefab == null) continue;
-
-            CreateElementalEffect(spell, target);
-        }
-    }
-
-    /// <summary>
     /// 방향에 따른 필요 마나량 반환
     /// </summary>
     private int GetRequiredMana(Vector2Int direction)
@@ -154,50 +139,5 @@ public class EnchantComponent : MonoBehaviour
             { x: 1, y: 0 } => manaPool.fire,     // 오른쪽
             _ => 0
         };
-    }
-
-    /// <summary>
-    /// 원소 효과 생성 및 적용
-    /// </summary>
-    private void CreateElementalEffect(MagicSpell spell, Transform target)
-    {
-        GameObject fx = Instantiate(spell.elementalEffectPrefab, target);
-        fx.transform.localPosition = Vector3.zero;
-
-        // 메쉬 적용
-        Mesh targetMesh = GetTargetMesh(target);
-        if (targetMesh != null)
-        {
-            ApplyMeshToParticleSystem(fx, targetMesh);
-        }
-    }
-
-    /// <summary>
-    /// 타겟에서 메쉬 가져오기
-    /// </summary>
-    private Mesh GetTargetMesh(Transform target)
-    {
-        // MeshFilter 우선 확인
-        var meshFilter = target.GetComponentInChildren<MeshFilter>();
-        if (meshFilter?.sharedMesh != null)
-            return meshFilter.sharedMesh;
-
-        // SkinnedMeshRenderer 확인
-        var skinnedMeshRenderer = target.GetComponentInChildren<SkinnedMeshRenderer>();
-        return skinnedMeshRenderer?.sharedMesh;
-    }
-
-    /// <summary>
-    /// 파티클 시스템에 메쉬 적용
-    /// </summary>
-    private void ApplyMeshToParticleSystem(GameObject fx, Mesh mesh)
-    {
-        var particleSystem = fx.GetComponent<ParticleSystem>();
-        if (particleSystem == null) return;
-
-        var shape = particleSystem.shape;
-        shape.shapeType = ParticleSystemShapeType.Mesh;
-        shape.mesh = mesh;
-        shape.alignToDirection = true;
     }
 } 

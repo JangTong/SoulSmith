@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ee17c6b5f0011c46818af568050a901, type: 3}
+  m_Name: FireImpact
+  m_EditorClassIdentifier: 
+  spellName: FireImpact
+  description: 
+  spellIcon: {fileID: -1534873374, guid: e659bfd6d2c50cf4e8f096602d416342, type: 3}
+  cost:
+    fire: 0
+    water: 0
+    earth: 0
+    air: 0
+  castEffectPrefab: {fileID: 849518450535060381, guid: 49aeb122cba0447439ad6b79839d5d1e,
+    type: 3}
+  explosionEffectPrefab: {fileID: 4912919794932165535, guid: 6f6bcc067b57c134f9a75d4f491be311,
+    type: 3}
+  maxDistance: 10
+  hitLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  effectDelay: 0.5
+  effectLifetime: 3
+  castSound: {fileID: 0}
+  explosionSound: {fileID: 0}
+  audioVolume: 0.7

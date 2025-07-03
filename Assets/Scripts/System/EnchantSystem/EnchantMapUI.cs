@@ -276,7 +276,7 @@ public class EnchantMapUI : MonoBehaviour
         if (!enchant.appliedSpells.Contains(spell))
         {
             enchant.appliedSpells.Add(spell);
-            enchant.ApplyElementalEffects(tileObj.transform);
+            // ApplyElementalEffects는 제거됨 - 각 마법이 개별적으로 이펙트 관리
             sparkEffect.Play();
             ShowFeedback($"마법 '{spell.name}' 부여 완료");
             Debug.Log($"{LOG_PREFIX} Applied spell: {spell.name} at {currentCoord}");

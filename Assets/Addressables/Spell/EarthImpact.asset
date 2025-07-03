@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ee17c6b5f0011c46818af568050a901, type: 3}
+  m_Name: EarthImpact
+  m_EditorClassIdentifier: 
+  spellName: EarthImpact
+  description: 
+  spellIcon: {fileID: 379019120, guid: e659bfd6d2c50cf4e8f096602d416342, type: 3}
+  cost:
+    fire: 0
+    water: 0
+    earth: 0
+    air: 0
+  castEffectPrefab: {fileID: 7241217483817270791, guid: 279a2194dd8a1994195b8c9fa876bc84,
+    type: 3}
+  explosionEffectPrefab: {fileID: 2314742756966661447, guid: dd2f429495f5c404a8f04cd7ddabf4cc,
+    type: 3}
+  maxDistance: 10
+  hitLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  effectDelay: 0.5
+  effectLifetime: 3
+  castSound: {fileID: 0}
+  explosionSound: {fileID: 0}
+  audioVolume: 0.7

@@ -18,7 +18,7 @@ public class ShootingSpell : MagicSpell
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.velocity = caster.forward * launchForce;
+            rb.linearVelocity = caster.forward * launchForce;
         }
 
         Debug.Log($"'{this.name}'시전됨!");
